@@ -62,7 +62,7 @@ export default function DashboardLayout({ children }) {
           { label: "Database", link: "/admin/siswa/database"},
           { label: "Presensi", link: "/admin/siswa/presensi"},
           { label: "Invoice", link: "/admin/siswa/invoice"},
-          { label: "Paket Siswa", link: "/admin/siswa/paket"},
+          { label: "Pendaftaran Siswa", link: "/admin/siswa/paket"},
           
         ],
       },
@@ -88,6 +88,11 @@ export default function DashboardLayout({ children }) {
         icon: <FaBookOpen />,
         link: "/admin/paket",
 
+      },
+      {
+        label: "Mapel",
+        icon: <FaBook />,
+        link: "/admin/mapel",
       },
       {
         label: "Transaksi",

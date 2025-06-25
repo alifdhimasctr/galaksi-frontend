@@ -21,7 +21,6 @@ export default function ApprovePaketPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("NonApprove");
   const [selectedOrderId, setSelectedOrderId] = useState(null);
-  const [openapproveRejectModal, setopenapproveRejectModal] = useState(false);
   const [openApproveModal, setOpenApproveModal] = useState(false);
   const [openRejectModal, setOpenRejectModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);

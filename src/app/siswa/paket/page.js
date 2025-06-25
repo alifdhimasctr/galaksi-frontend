@@ -178,10 +178,8 @@ export default function PaketPage() {
     <DashboardLayout>
       <div className="px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Daftar Pesanan</h1>
-          <p className="mt-2 text-sm text-gray-500">
-            Riwayat semua paket bimbingan yang pernah Anda pesan
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">Pendaftaran Les</h1>
+          
         </div>
 
         {loading ? (
@@ -196,7 +194,7 @@ export default function PaketPage() {
               <FaCube className="mx-auto h-12 w-12" />
             </div>
             <h3 className="text-lg font-medium text-gray-900">
-              Belum ada pesanan
+              Belum ada Pendaftaran Les
             </h3>
             <p className="mt-1 text-sm text-gray-500">
               Silahkan memilih paket bimbingan terlebih dahulu

@@ -49,7 +49,6 @@ export default function TentorPage() {
     () => [
       { accessorKey: "id", header: "ID" },
       { accessorKey: "name", header: "NAMA TENTOR" },
-      { accessorKey: "mitra.name", header: "MITRA" },
       {
         accessorKey: "status",
         header: "STATUS",

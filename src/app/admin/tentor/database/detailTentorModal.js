@@ -1,15 +1,24 @@
-
 import Cookies from "js-cookie";
 import axios from "axios";
 import Modal from "@/app/component/modal";
 import React, { useEffect, useState } from "react";
-import { FaUser, FaPhone, FaVenusMars, FaUniversity, FaCity, FaMoneyBill, FaIdBadge, FaBuilding, FaWallet, FaCheckCircle, FaTimesCircle, FaCalendar, FaFilePdf } from "react-icons/fa";
-
+import {
+  FaUser,
+  FaPhone,
+  FaVenusMars,
+  FaUniversity,
+  FaCity,
+  FaMoneyBill,
+  FaIdBadge,
+  FaCheckCircle,
+  FaCalendar
+} from "react-icons/fa";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 
 export default function DetailTentorModal({ open, onClose, tentorId }) {
   const [tentor, settentor] = useState(null);
+  const [mapel, setMapel] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,25 +34,17 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
         toast.error(e);
       } finally {
         setLoading(false);
-        
       }
     };
+    
     fetchtentor();
   }, [open, tentorId]);
-
-  const statusColor = tentor?.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
-  const genderLabel = tentor?.gender === 'L' ? 'Laki-laki' : 'Perempuan';
-  
-  const Badge = ({ children, color }) => (
-    <span className={`px-2 py-1 rounded-full text-xs bg-${color}-100 text-${color}-700`}>
-      {children}
-    </span>
-  );
-
 
   if (loading) return null;
   if (!tentor) return null;
   if (!open) return null;
+
+  const genderLabel = tentor?.gender === 'L' ? 'Laki-laki' : 'Perempuan';
 
   return (
     <Modal
@@ -79,25 +80,17 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
           <DetailItem icon={<FaVenusMars />} label="Jenis Kelamin">
             {genderLabel}
           </DetailItem>
-          
           <DetailItem icon={<FaPhone />} label="No. HP">
             {tentor?.noHp || '-'}
           </DetailItem>
-
           <DetailItem icon={<FaUniversity />} label="Fakultas">
             {tentor?.faculty || '-'}
           </DetailItem>
-
           <DetailItem icon={<FaUniversity />} label="Universitas">
             {tentor?.university || '-'}
           </DetailItem>
-
           <DetailItem icon={<FaCity />} label="Kota">
             {tentor?.city || '-'}
-          </DetailItem>
-
-          <DetailItem icon={<FaBuilding />} label="Mitra">
-            {tentor?.mitra?.name || '-'}
           </DetailItem>
         </div>
 
@@ -109,6 +102,15 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
             ))}
           </div>
         </DetailItem>
+        {/* Mapel */}
+        <DetailItem icon={<FaCheckCircle />} label="Mata Pelajaran yang Diajar
+          ">
+          <div className="flex flex-wrap gap-2">
+            {tentor?.mapel?.map((lvl, index) => (
+              <Badge key={index} color="blue">{lvl}</Badge>
+            ))}
+          </div>
+        </DetailItem>
 
         {/* Informasi Bank */}
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -116,8 +118,12 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
             <FaMoneyBill /> Informasi Bank
           </h3>
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <DetailItem label="Nama Bank">{tentor?.bankName || '-'}</DetailItem>
-            <DetailItem label="Nomor Rekening">{tentor?.bankNumber || '-'}</DetailItem>
+            <DetailItem label="Nama Bank">
+              {tentor?.bankName || '-'}
+            </DetailItem>
+            <DetailItem label="Nomor Rekening">
+              {tentor?.bankNumber || '-'}
+            </DetailItem>
             <DetailItem label="Saldo">
               {new Intl.NumberFormat('id-ID', {
                 style: 'currency',
@@ -133,20 +139,52 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
             {tentor?.fotoUrl ? (
               <div className="relative h-48 w-full rounded-lg overflow-hidden border">
                 <img
-                    src={tentor.fotoUrl}
+                  src={tentor.fotoUrl}
                   alt="Foto Profil"
                   className="object-cover w-full h-full"
-                  />
+                />
               </div>
             ) : '-'}
           </DetailItem>
-
           <DetailItem icon={<FaIdBadge />} label="Dokumen SIM">
             {tentor?.simUrl ? (
               <div className="relative h-48 w-full rounded-lg overflow-hidden border">
                 <img
                   src={tentor.simUrl}
                   alt="Dokumen SIM"
+                  className="object-cover w-full h-full"
+                />
+              </div>
+            ) : '-'}
+          </DetailItem>
+          <DetailItem icon={<FaIdBadge />} label="CV">
+            {tentor?.cvUrl ? (
+              tentor.cvUrl.toLowerCase().endsWith('.pdf') ? (
+                <a
+                  href={tentor.cvUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 underline"
+                >
+                  Lihat Dokumen PDF
+                </a>
+              ) : (
+                <div className="relative h-48 w-full rounded-lg overflow-hidden border">
+                  <img
+                    src={tentor.cvUrl}
+                    alt="Dokumen CV"
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+              )
+            ) : '-'}
+          </DetailItem>
+          <DetailItem icon={<FaIdBadge />} label="KTP">
+            {tentor?.ktpUrl ? (
+              <div className="relative h-48 w-full rounded-lg overflow-hidden border">
+                <img
+                  src={tentor.ktpUrl}
+                  alt="KTP"
                   className="object-cover w-full h-full"
                 />
               </div>
@@ -167,6 +205,12 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
     </Modal>
   );
 }
+
+const Badge = ({ children, color }) => (
+  <span className={`px-2 py-1 rounded-full text-xs bg-${color}-100 text-${color}-700`}>
+    {children}
+  </span>
+);
 
 const DetailItem = ({ icon, label, children }) => (
   <div className="flex flex-col gap-1">

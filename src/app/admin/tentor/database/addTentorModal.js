@@ -23,17 +23,18 @@ import Select from 'react-select';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 
 export default function AddTentorModal({ open, onClose, onSuccess }) {
-  const [mitras, setMitras] = useState([]);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
+  const [mapelOptions, setMapelOptions] = useState([]);
   const [fotoPreview, setFotoPreview] = useState(null);
-const [simPreview, setSimPreview] = useState(null);
+  const [simPreview, setSimPreview] = useState(null);
+  const [ktpPreview, setKtpPreview] = useState(null);
+  const [cvPreview, setCvPreview] = useState(null);
 
   const [form, setForm] = useState({
     status: "active",
     email: "",
     name: "",
-    mitraId: "",
     noHp: "",
     gender: "",
     faculty: "",
@@ -42,72 +43,74 @@ const [simPreview, setSimPreview] = useState(null);
     address: "",
     wallet: 0,
     level: [],
+    mapel: [],
     foto: null,
     sim: null,
+    ktp: null,
+    cv: null,
     bankName: "",
     bankNumber: "",
   });
 
   useEffect(() => {
-    if (!open) return;
-    (async () => {
-      try {
-        const token = Cookies.get("token");
-        const { data } = await axios.get(`${API}/users/mitra`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setMitras(data);
-      } catch (e) {
-        toast.error(e);
-      }
-    })();
+    if (!open) return;  
+    const fetchMapel = async () => {
+  try {
+    const token = Cookies.get("token");
+    const { data } = await axios.get(`${API}/mapel`, {  
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const options = data.map((item) => ({
+      value: item.id,  // Perhatikan di sini, gunakan 'id' bukan '_id'
+      label: item.name, 
+    }));
+    setMapelOptions(options);
+  } catch (err) {
+    toast.error("Gagal memuat data mapel");
+    setMsg(err?.response?.data?.message || "Gagal memuat data mapel");
+  }
+}
+    fetchMapel();
   }, [open]);
+
+  
+
 
   const change = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
   const handleFileChange = (field) => (e) => {
     const file = e.target.files[0];
     if (!file) return;
-  
     setForm({ ...form, [field]: file });
-  
-    // Membuat preview
     const reader = new FileReader();
     reader.onloadend = () => {
-      if (field === 'foto') {
-        setFotoPreview(reader.result);
-      } else if (field === 'sim') {
-        if (file.type === 'application/pdf') {
-          setSimPreview('pdf');
-        } else {
-          setSimPreview(reader.result);
-        }
-      }
+      const previewSetter = {
+        foto: setFotoPreview,
+        sim: (res) => setSimPreview(file.type === "application/pdf" ? "pdf" : res),
+        ktp: (res) => setKtpPreview(file.type === "application/pdf" ? "pdf" : res),
+        cv: (res) => setCvPreview(file.type === "application/pdf" ? "pdf" : res),
+      }[field];
+      previewSetter(reader.result);
     };
     reader.readAsDataURL(file);
   };
 
-  const handleLevelChange = (level) => {
-    setForm((prevState) => {
-      const newLevels = prevState.level.includes(level)
-        ? prevState.level.filter((l) => l !== level)
-        : [...prevState.level, level];
-      return { ...prevState, level: newLevels };
-    });
-  };
+  const handleMapelChange = (selectedOptions) => {
+  setForm(prev => ({
+    ...prev,
+    mapel: selectedOptions ? selectedOptions.map(opt => opt.value) : []
+  }));
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMsg("");
-
     if (!form.email || !form.name || form.level.length === 0) {
       return setMsg("Email, Nama, dan Jenjang harus diisi");
     }
-
     try {
       setLoading(true);
       const token = Cookies.get("token");
-
       const formData = new FormData();
       formData.append("name", form.name);
       formData.append("email", form.email);
@@ -119,13 +122,15 @@ const [simPreview, setSimPreview] = useState(null);
       formData.append("address", form.address);
       formData.append("wallet", form.wallet);
       formData.append("level", JSON.stringify(form.level));
+      formData.append("mapel", JSON.stringify(form.mapel));
       formData.append("foto", form.foto);
       formData.append("sim", form.sim);
+      formData.append("ktp", form.ktp);
+      formData.append("cv", form.cv);
       formData.append("bankName", form.bankName);
       formData.append("bankNumber", form.bankNumber);
-      formData.append("mitraId", form.mitraId);
 
-      const response = await axios.post(`${API}/register/tentor`, formData, {
+      await axios.post(`${API}/register/tentor`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
@@ -134,7 +139,6 @@ const [simPreview, setSimPreview] = useState(null);
 
       setLoading(false);
       onSuccess();
-      console.log("Response dari server:", response);
       toast.success("Tentor berhasil ditambahkan");
       onClose();
     } catch (err) {
@@ -156,24 +160,17 @@ const [simPreview, setSimPreview] = useState(null);
     { value: 'SMA', label: 'SMA' }
   ];
 
-  const mitraOptions = mitras.map(m => ({
-    value: m.id,
-    label: m.name
-  }));
-  
   useEffect(() => {
     if (!open) {
       setFotoPreview(null);
       setSimPreview(null);
+      setKtpPreview(null);
+      setCvPreview(null);
     }
   }, [open]);
 
-  // Update handler untuk react-select
   const handleSelectChange = (field) => (selectedOption) => {
-    setForm(prev => ({
-      ...prev,
-      [field]: selectedOption ? selectedOption.value : ''
-    }));
+    setForm(prev => ({ ...prev, [field]: selectedOption ? selectedOption.value : '' }));
   };
 
   const handleMultiSelectChange = (selectedOptions) => {
@@ -183,14 +180,13 @@ const [simPreview, setSimPreview] = useState(null);
     }));
   };
 
-  // Styling untuk react-select
   const selectStyles = {
     control: (base) => ({
       ...base,
       minHeight: '44px',
       borderColor: '#e5e7eb',
       '&:hover': { borderColor: '#3b82f6' },
-      '&:focus-within': { 
+      '&:focus-within': {
         borderColor: '#3b82f6',
         boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.1)'
       }
@@ -205,11 +201,7 @@ const [simPreview, setSimPreview] = useState(null);
 
   if (!open) return null;
   return (
-    <Modal
-      icon={<FaUser className="text-blue-500" />}
-      title="Tambah Tentor"
-      onClose={onClose}
-    >
+    <Modal icon={<FaUser className="text-blue-500" />} title="Tambah Tentor" onClose={onClose}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Label text="Email">
@@ -220,34 +212,20 @@ const [simPreview, setSimPreview] = useState(null);
               onChange={change("email")}
             />
           </Label>
-
           <Label text="Nama Lengkap">
-            <Input 
-              icon={<FaUser />} 
-              value={form.name} 
-              onChange={change("name")} 
-            />
+            <Input icon={<FaUser />} value={form.name} onChange={change("name")} />
           </Label>
-
           <Label text="No. HP">
-            <Input 
-              icon={<FaPhone />} 
-              value={form.noHp} 
-              onChange={change("noHp")} 
-            />
+            <Input icon={<FaPhone />} value={form.noHp} onChange={change("noHp")} />
           </Label>
-
           <Label text="Gender">
             <Select
               options={genderOptions}
               styles={selectStyles}
-              className="react-select-container"
-              classNamePrefix="react-select"
               placeholder="Pilih Gender"
               onChange={handleSelectChange('gender')}
             />
           </Label>
-
           <Label text="Fakultas">
             <Input
               icon={<FaUniversity />}
@@ -255,7 +233,6 @@ const [simPreview, setSimPreview] = useState(null);
               onChange={change("faculty")}
             />
           </Label>
-
           <Label text="Universitas">
             <Input
               icon={<FaSchool />}
@@ -263,23 +240,8 @@ const [simPreview, setSimPreview] = useState(null);
               onChange={change("university")}
             />
           </Label>
-
           <Label text="Kota">
-            <Input 
-              icon={<FaCity />} 
-              value={form.city} 
-              onChange={change("city")} 
-            />
-          </Label>
-
-          <Label text="Mitra (opsional)">
-            <Select
-              options={mitraOptions}
-              styles={selectStyles}
-              isClearable
-              placeholder="Pilih Mitra"
-              onChange={handleSelectChange('mitraId')}
-            />
+            <Input icon={<FaCity />} value={form.city} onChange={change("city")} />
           </Label>
         </div>
 
@@ -296,13 +258,23 @@ const [simPreview, setSimPreview] = useState(null);
             isMulti
             options={levelOptions}
             styles={selectStyles}
-            className="react-select-container"
-            classNamePrefix="react-select"
             placeholder="Pilih Jenjang"
             onChange={handleMultiSelectChange}
             value={levelOptions.filter(opt => form.level.includes(opt.value))}
           />
         </Label>
+
+        <Label text="Mapel yang Diajarkan">
+  <Select
+    isMulti
+    options={mapelOptions}
+    styles={selectStyles}
+    placeholder="Pilih Mapel"
+    onChange={handleMapelChange}
+    value={mapelOptions.filter(opt => form.mapel.includes(opt.value))}
+    closeMenuOnSelect={false}
+  />
+</Label>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Label text="Nama Bank">
@@ -312,40 +284,60 @@ const [simPreview, setSimPreview] = useState(null);
               onChange={change("bankName")}
             />
           </Label>
-
           <Label text="Nomor Rekening">
-            <Input 
-              value={form.bankNumber} 
-              onChange={change("bankNumber")} 
+            <Input value={form.bankNumber} onChange={change("bankNumber")} />
+          </Label>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Label text="Foto">
+            <FileInput
+              onChange={handleFileChange("foto")}
+              acceptedFiles="image/*"
+              preview={fotoPreview}
+              onRemove={() => {
+                setForm(prev => ({ ...prev, foto: null }));
+                setFotoPreview(null);
+              }}
+            />
+          </Label>
+          <Label text="SIM">
+            <FileInput
+              onChange={handleFileChange("sim")}
+              acceptedFiles="application/pdf,image/*"
+              preview={simPreview}
+              onRemove={() => {
+                setForm(prev => ({ ...prev, sim: null }));
+                setSimPreview(null);
+              }}
             />
           </Label>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  <Label text="Foto">
-    <FileInput 
-      onChange={handleFileChange("foto")}
-      acceptedFiles="image/*"
-      preview={fotoPreview}
-      onRemove={() => {
-        setForm(prev => ({...prev, foto: null}));
-        setFotoPreview(null);
-      }}
-    />
-  </Label>
-
-  <Label text="SIM">
-    <FileInput 
-      onChange={handleFileChange("sim")}
-      acceptedFiles="application/pdf,image/*"
-      preview={simPreview}
-      onRemove={() => {
-        setForm(prev => ({...prev, sim: null}));
-        setSimPreview(null);
-      }}
-    />
-  </Label>
-</div>
+          <Label text="KTP">
+            <FileInput
+              onChange={handleFileChange("ktp")}
+              acceptedFiles="application/pdf,image/*"
+              preview={ktpPreview}
+              onRemove={() => {
+                setForm(prev => ({ ...prev, ktp: null }));
+                setKtpPreview(null);
+              }}
+            />
+          </Label>
+          <Label text="CV">
+            <FileInput
+              onChange={handleFileChange("cv")}
+              acceptedFiles="application/pdf,image/*"
+              preview={cvPreview}
+              onRemove={() => {
+                setForm(prev => ({ ...prev, cv: null }));
+                setCvPreview(null);
+              }}
+            />
+          </Label>
+        </div>
 
         {msg && (
           <div className="p-3 bg-red-50 text-red-700 rounded-lg border border-red-100">
@@ -379,7 +371,6 @@ const [simPreview, setSimPreview] = useState(null);
   );
 }
 
-// Komponen FileInput yang diperbarui
 const FileInput = ({ onChange, acceptedFiles, preview, onRemove }) => (
   <div className="relative border border-gray-200 rounded-lg p-2 hover:border-blue-500 transition-colors group">
     <input
@@ -388,24 +379,16 @@ const FileInput = ({ onChange, acceptedFiles, preview, onRemove }) => (
       accept={acceptedFiles}
       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
     />
-    
     {preview ? (
       <div className="relative h-32">
-        {typeof preview === 'string' ? (
-          preview === 'pdf' ? (
-            <div className="flex flex-col items-center justify-center h-full text-blue-500">
-              <FaFilePdf className="text-3xl" />
-              <span className="text-sm mt-2">PDF File</span>
-            </div>
-          ) : (
-            <img 
-              src={preview} 
-              alt="Preview" 
-              className="w-full h-full object-cover rounded-lg"
-            />
-          )
-        ) : null}
-        
+        {preview === 'pdf' ? (
+          <div className="flex flex-col items-center justify-center h-full text-blue-500">
+            <FaFilePdf className="text-3xl" />
+            <span className="text-sm mt-2">PDF File</span>
+          </div>
+        ) : (
+          <img src={preview} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+        )}
         <button
           type="button"
           onClick={onRemove}
@@ -425,9 +408,7 @@ const FileInput = ({ onChange, acceptedFiles, preview, onRemove }) => (
 
 const Label = ({ text, children, className = "" }) => (
   <label className={`flex flex-col gap-1 ${className}`}>
-    <span className="flex items-center gap-2 font-medium text-gray-700">
-      {text}
-    </span>
+    <span className="flex items-center gap-2 font-medium text-gray-700">{text}</span>
     {children}
   </label>
 );
