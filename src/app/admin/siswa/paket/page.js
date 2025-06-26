@@ -11,6 +11,7 @@ import EditModal from "./editModal";
 import DeleteModal from "./deleteModal";
 import ApproveModal from "./approveModal";
 import RejectModal from "./rejectModal";
+import AdminOrderPage from "./orderPage";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 
@@ -25,6 +26,7 @@ export default function ApprovePaketPage() {
   const [openRejectModal, setOpenRejectModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [openAddModal, setOpenAddModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -173,6 +175,7 @@ export default function ApprovePaketPage() {
         ) : (
           <DataTable
             data={filteredOrders}
+            onAdd={() => setOpenAddModal(true)}
             columns={columns}
             onSearch={true}
             filterOptions={{
@@ -186,6 +189,19 @@ export default function ApprovePaketPage() {
             }}
           />
         )}
+
+        <AdminOrderPage
+          open={openAddModal}
+          onClose={() => {
+            setOpenAddModal(false);
+            refreshOrders();
+          }}
+          onSuccess={() => {
+            refreshOrders();
+            
+          }}
+          />
+
 
 
           <EditModal
