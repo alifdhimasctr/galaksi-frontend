@@ -11,7 +11,7 @@ import {
   FaMoneyBill,
   FaIdBadge,
   FaCheckCircle,
-  FaCalendar
+  FaCalendar,
 } from "react-icons/fa";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
@@ -36,7 +36,7 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
         setLoading(false);
       }
     };
-    
+
     fetchtentor();
   }, [open, tentorId]);
 
@@ -44,7 +44,7 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
   if (!tentor) return null;
   if (!open) return null;
 
-  const genderLabel = tentor?.gender === 'L' ? 'Laki-laki' : 'Perempuan';
+  const genderLabel = tentor?.gender === "L" ? "Laki-laki" : "Perempuan";
 
   return (
     <Modal
@@ -68,7 +68,7 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
             <h2 className="text-xl font-semibold">{tentor?.name}</h2>
             <div className="flex items-center gap-2 mt-1">
               <Badge color="blue">ID: {tentor?.id}</Badge>
-              <Badge color={tentor?.status === 'active' ? 'green' : 'red'}>
+              <Badge color={tentor?.status === "active" ? "green" : "red"}>
                 {tentor?.status}
               </Badge>
             </div>
@@ -81,16 +81,16 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
             {genderLabel}
           </DetailItem>
           <DetailItem icon={<FaPhone />} label="No. HP">
-            {tentor?.noHp || '-'}
+            {tentor?.noHp || "-"}
           </DetailItem>
           <DetailItem icon={<FaUniversity />} label="Fakultas">
-            {tentor?.faculty || '-'}
+            {tentor?.faculty || "-"}
           </DetailItem>
           <DetailItem icon={<FaUniversity />} label="Universitas">
-            {tentor?.university || '-'}
+            {tentor?.university || "-"}
           </DetailItem>
           <DetailItem icon={<FaCity />} label="Kota">
-            {tentor?.city || '-'}
+            {tentor?.city || "-"}
           </DetailItem>
         </div>
 
@@ -98,19 +98,58 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
         <DetailItem icon={<FaCheckCircle />} label="Jenjang yang Diajar">
           <div className="flex flex-wrap gap-2">
             {tentor?.level?.map((lvl, index) => (
-              <Badge key={index} color="blue">{lvl}</Badge>
+              <Badge key={index} color="blue">
+                {lvl}
+              </Badge>
             ))}
           </div>
         </DetailItem>
         {/* Mapel */}
-        <DetailItem icon={<FaCheckCircle />} label="Mata Pelajaran yang Diajar
-          ">
+        <DetailItem
+          icon={<FaCheckCircle />}
+          label="Mata Pelajaran yang Diajar
+          "
+        >
           <div className="flex flex-wrap gap-2">
             {tentor?.mapel?.map((lvl, index) => (
-              <Badge key={index} color="blue">{lvl}</Badge>
+              <Badge key={index} color="blue">
+                {lvl}
+              </Badge>
             ))}
           </div>
         </DetailItem>
+
+        {/* Jadwal */}
+        {tentor?.schedule && Array.isArray(tentor.schedule) && (
+          <div>
+            <h3 className="font-medium text-blue-700 mb-2 flex items-center gap-2">
+              <FaCalendar /> Jadwal Mengajar
+            </h3>
+            <div className="flex flex-col gap-2">
+              {tentor.schedule.map((sch, idx) => (
+                <div key={idx}>
+                  <div className="font-semibold mb-1">{sch.day}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {sch.slots.map((slot, sidx) => (
+                      <span
+                        key={sidx}
+                        className={`px-2 py-1 rounded-full text-xs 
+                  ${
+                    slot.booked
+                      ? "bg-gray-200 text-gray-600"
+                      : "bg-blue-100 text-blue-700"
+                  }
+                `}
+                      >
+                        {slot.time}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Informasi Bank */}
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -118,16 +157,14 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
             <FaMoneyBill /> Informasi Bank
           </h3>
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <DetailItem label="Nama Bank">
-              {tentor?.bankName || '-'}
-            </DetailItem>
+            <DetailItem label="Nama Bank">{tentor?.bankName || "-"}</DetailItem>
             <DetailItem label="Nomor Rekening">
-              {tentor?.bankNumber || '-'}
+              {tentor?.bankNumber || "-"}
             </DetailItem>
             <DetailItem label="Saldo">
-              {new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR'
+              {new Intl.NumberFormat("id-ID", {
+                style: "currency",
+                currency: "IDR",
               }).format(tentor?.wallet || 0)}
             </DetailItem>
           </div>
@@ -144,7 +181,9 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
                   className="object-cover w-full h-full"
                 />
               </div>
-            ) : '-'}
+            ) : (
+              "-"
+            )}
           </DetailItem>
           <DetailItem icon={<FaIdBadge />} label="Dokumen SIM">
             {tentor?.simUrl ? (
@@ -155,11 +194,13 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
                   className="object-cover w-full h-full"
                 />
               </div>
-            ) : '-'}
+            ) : (
+              "-"
+            )}
           </DetailItem>
           <DetailItem icon={<FaIdBadge />} label="CV">
             {tentor?.cvUrl ? (
-              tentor.cvUrl.toLowerCase().endsWith('.pdf') ? (
+              tentor.cvUrl.toLowerCase().endsWith(".pdf") ? (
                 <a
                   href={tentor.cvUrl}
                   target="_blank"
@@ -177,7 +218,9 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
                   />
                 </div>
               )
-            ) : '-'}
+            ) : (
+              "-"
+            )}
           </DetailItem>
           <DetailItem icon={<FaIdBadge />} label="KTP">
             {tentor?.ktpUrl ? (
@@ -188,17 +231,19 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
                   className="object-cover w-full h-full"
                 />
               </div>
-            ) : '-'}
+            ) : (
+              "-"
+            )}
           </DetailItem>
         </div>
 
         {/* Tanggal */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <DetailItem icon={<FaCalendar />} label="Tanggal Bergabung">
-            {new Date(tentor?.dateJoin).toLocaleString() || '-'}
+            {new Date(tentor?.dateJoin).toLocaleString() || "-"}
           </DetailItem>
           <DetailItem icon={<FaCalendar />} label="Terakhir Diupdate">
-            {new Date(tentor?.updatedAt).toLocaleString() || '-'}
+            {new Date(tentor?.updatedAt).toLocaleString() || "-"}
           </DetailItem>
         </div>
       </div>
@@ -207,7 +252,9 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
 }
 
 const Badge = ({ children, color }) => (
-  <span className={`px-2 py-1 rounded-full text-xs bg-${color}-100 text-${color}-700`}>
+  <span
+    className={`px-2 py-1 rounded-full text-xs bg-${color}-100 text-${color}-700`}
+  >
     {children}
   </span>
 );

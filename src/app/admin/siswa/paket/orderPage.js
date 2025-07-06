@@ -135,7 +135,7 @@ export default function AdminOrderPage({ open, onClose, onSuccess }) {
 
     if (name === "siswa") {
       const selectedSiswa = siswaData.find(
-        (siswa) => siswa.id === selectedOption.value
+        (siswa) => siswa.id === selectedOption?.value
       );
       setLevel(selectedSiswa?.level || "");
 
@@ -217,7 +217,6 @@ export default function AdminOrderPage({ open, onClose, onSuccess }) {
       onClose();
     } catch (error) {
       toast.error("Gagal membuat order", error?.response?.message);
-        console.error("Error creating order:", error);
       setMsg(error?.response?.data?.message || "Gagal membuat order");
     } finally {
       setLoading(false);

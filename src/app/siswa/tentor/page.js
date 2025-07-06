@@ -59,10 +59,7 @@ export default function TentorDatabase() {
         // Process tentors
         const processedTentors = tentorResponse.data.map((tentor) => ({
           ...tentor,
-          level: JSON.parse(tentor.level),
-          mapel: JSON.parse(tentor.mapel || "[]").map(
-            (mapelId) => mapelData[mapelId] || "Unknown"
-          ),
+
         }));
 
         setTentors(processedTentors);
@@ -108,26 +105,25 @@ export default function TentorDatabase() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow p-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="bg-white rounded-xl shadow p-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">
+              <h1 className="text-lg font-bold text-gray-800">
                 Database Tentor
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 mt-1 text-sm">
                 Temukan tentor berpengalaman yang siap membimbing Anda
               </p>
             </div>
-
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-50 rounded-lg p-3">
-                <FaGraduationCap className="text-blue-600 text-xl" />
+            <div className="flex items-center gap-2">
+              <div className="bg-blue-50 rounded-lg p-2">
+                <FaGraduationCap className="text-blue-600 text-lg" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Total Tentor</p>
-                <p className="font-bold text-gray-800">
+                <p className="text-xs text-gray-500">Total Tentor</p>
+                <p className="font-bold text-gray-800 text-base">
                   {filteredTentors.length} Tentor
                 </p>
               </div>
@@ -136,16 +132,16 @@ export default function TentorDatabase() {
         </div>
 
         {/* Filter dan Pencarian */}
-        <div className="bg-white rounded-xl shadow p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl shadow p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <FaSearch className="text-gray-400" />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
+                <FaSearch className="text-gray-400 text-base" />
               </div>
               <input
                 type="text"
                 placeholder="Cari nama tentor atau universitas..."
-                className="w-full p-3 pl-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 pl-8 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -153,7 +149,7 @@ export default function TentorDatabase() {
             {/* Filter Kota */}
             <div>
               <select
-                className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 value={cityFilter}
                 onChange={(e) => setCityFilter(e.target.value)}
               >
@@ -170,60 +166,31 @@ export default function TentorDatabase() {
 
         {/* Daftar Tentor */}
         {loading ? (
-          <div className="bg-white rounded-xl shadow p-8 text-center">
+          <div className="bg-white rounded-xl shadow p-6 text-center">
             <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
             </div>
-            <p className="mt-4 text-gray-600">Memuat data tentor...</p>
+            <p className="mt-2 text-gray-600 text-sm">Memuat data tentor...</p>
           </div>
         ) : error ? (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            {/* ...error content tetap, bisa perkecil font jika perlu */}
             <div className="text-red-500 text-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-12 w-12 mx-auto mb-3"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <h3 className="text-lg font-medium mb-2">Gagal Memuat Data</h3>
-              <p>{error}</p>
+              <h3 className="text-base font-medium mb-1">Gagal Memuat Data</h3>
+              <p className="text-sm">{error}</p>
             </div>
           </div>
         ) : filteredTentors.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-            <div className="text-gray-400 mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-16 w-16 mx-auto"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
+            <h3 className="text-lg font-semibold text-gray-700 mb-1">
               Tidak ada tentor yang ditemukan
             </h3>
-            <p className="text-gray-500">
+            <p className="text-gray-500 text-sm">
               Coba kata kunci pencarian berbeda atau filter level lain
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTentors.map((tentor) => (
               <TentorCard key={tentor.id} tentor={tentor} />
             ))}
@@ -238,34 +205,33 @@ function TentorCard({ tentor }) {
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300">
       {/* Header dengan background gradient */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6">
+      <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4">
         <div className="flex items-center">
           {/* Foto Tentor */}
           <div className="relative">
             <img
               src={tentor.fotoUrl || "https://via.placeholder.com/100"}
               alt={tentor.name}
-              className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md"
+              className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md"
             />
-            <div className="absolute bottom-0 right-0 bg-white rounded-full p-1 shadow">
+            <div className="absolute bottom-0 right-0 bg-white rounded-full p-0.5 shadow">
               {tentor.gender === "L" ? (
-                <div className="bg-blue-500 rounded-full p-1">
+                <div className="bg-blue-500 rounded-full p-0.5">
                   <FaMars className="text-white text-xs" />
                 </div>
               ) : (
-                <div className="bg-pink-500 rounded-full p-1">
+                <div className="bg-pink-500 rounded-full p-0.5">
                   <FaVenus className="text-white text-xs" />
                 </div>
               )}
             </div>
           </div>
-
           {/* Nama dan Status */}
-          <div className="ml-4">
-            <h2 className="text-lg font-bold text-white">{tentor.name}</h2>
-            <div className="mt-1 flex items-center">
+          <div className="ml-3">
+            <h2 className="text-base font-bold text-white">{tentor.name}</h2>
+            <div className="mt-0.5 flex items-center">
               <div
-                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                   tentor.status === "active"
                     ? "bg-green-100 text-green-800"
                     : "bg-gray-100 text-gray-800"
@@ -279,73 +245,126 @@ function TentorCard({ tentor }) {
       </div>
 
       {/* Detail Tentor */}
-      <div className="p-6">
-        <div className="mb-4">
-          <div className="flex items-center mb-2 text-gray-700">
-            <FaGraduationCap className="text-blue-600 mr-2" />
-            <span className="font-medium">{tentor.university}</span>
-          </div>
-          <div className="flex items-center text-gray-600 ml-6">
-            <FaBook className="text-blue-600 mr-2" />
-            <span>{tentor.faculty}</span>
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <h3 className="font-medium text-gray-700 mb-2 flex items-center">
-            <FaMapMarkerAlt className="text-blue-600 mr-2" />
-            Domisili
-          </h3>
-          <p className="text-gray-600 ml-6">{tentor.city}</p>
-        </div>
-
-        <div className="mb-4">
-          <h3 className="font-medium text-gray-700 mb-2">Mengajar Level</h3>
-          <div className="flex flex-wrap gap-2 ml-1">
-            {tentor.level.map((level) => (
-              <span
-                key={level}
-                className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
-              >
-                {level}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <h3 className="font-medium text-gray-700 mb-2">
-            Mata Pelajaran yang dikuasai
-          </h3>
-          <div className="flex flex-wrap gap-2 ml-1">
-            {tentor.mapel.map((mapel, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium"
-              >
-                {mapel}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="border-t border-gray-100 pt-4">
-          <h3 className="font-medium text-gray-700 mb-2">Kontak</h3>
-          <div className="space-y-2">
-            <div className="flex items-center text-gray-600">
-              <FaPhone className="text-blue-600 mr-2" />
-              <span>{tentor.noHp}</span>
+        <div className="p-4">
+          <div className="mb-2">
+            <div className="flex items-center mb-1 text-gray-700 text-sm">
+          <FaGraduationCap className="text-blue-600 mr-2 text-base" />
+          <span className="font-medium">{tentor.university}</span>
             </div>
-            <div className="flex items-center text-gray-600">
-              <FaEnvelope className="text-blue-600 mr-2" />
-              <span className="truncate">{tentor.email}</span>
+            <div className="flex items-center text-gray-600 ml-6 text-xs">
+          <FaBook className="text-blue-600 mr-2 text-base" />
+          <span>{tentor.faculty}</span>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Footer */}
-      <div className="bg-gray-50 px-6 py-3 text-center">
+          <div className="mb-2">
+            <h3 className="font-medium text-gray-700 mb-1 flex items-center text-sm">
+          <FaMapMarkerAlt className="text-blue-600 mr-2 text-base" />
+          Domisili
+            </h3>
+            <p className="text-gray-600 ml-6 text-xs">{tentor.city}</p>
+          </div>
+
+          <div className="mb-2">
+            <h3 className="font-medium text-gray-700 mb-1 text-sm">Mengajar Level</h3>
+            <div className="flex flex-wrap gap-1 ml-1">
+          {tentor.level.map((level) => (
+            <span
+              key={level}
+              className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
+            >
+              {level}
+            </span>
+          ))}
+            </div>
+          </div>
+
+          <div className="mb-2">
+            <h3 className="font-medium text-gray-700 mb-1 text-sm">
+          Mata Pelajaran yang dikuasai
+            </h3>
+            <div className="flex flex-wrap gap-1 ml-1">
+          {tentor.mapel.map((mapel, index) => (
+            <span
+              key={index}
+              className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full text-xs font-medium"
+            >
+              {mapel.name }
+            </span>
+          ))}
+            </div>
+          </div>
+          
+          <div className="mb-2">
+            <h3 className="font-medium text-gray-700 mb-1 text-sm">Jadwal Mengajar</h3>
+            {(() => {
+          let schedule = [];
+          if (typeof tentor.schedule === "string") {
+            try {
+              schedule = JSON.parse(tentor.schedule);
+            } catch {
+              schedule = [];
+            }
+          } else if (Array.isArray(tentor.schedule)) {
+            schedule = tentor.schedule;
+          }
+          return schedule && schedule.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {schedule.map((sch, idx) => (
+            <div key={idx}>
+              <div className="font-semibold mb-1">{sch.day}</div>
+              <div className="flex flex-wrap gap-2">
+                {sch.slots.map((slot, sidx) => (
+              <span
+                key={sidx}
+                className={`px-2 py-1 rounded-full text-xs 
+                  ${slot.booked 
+                ? 'bg-gray-200 text-gray-600' 
+                : 'bg-blue-100 text-blue-700'}
+                `}
+              >
+                {slot.time}
+              </span>
+                ))}
+              </div>
+            </div>
+              ))}
+            </div>
+          ) : null;
+            })()}
+          </div>
+
+          {tentor.cvUrl && (
+            <div className="mb-2">
+              <a
+                href={tentor.cvUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-4 py-1 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition"
+              >
+                Lihat CV
+              </a>
+            </div>
+          )}
+          
+
+          <div className="border-t border-gray-100 pt-2">
+            <h3 className="font-medium text-gray-700 mb-1 text-sm">Kontak</h3>
+            <div className="space-y-1">
+          <div className="flex items-center text-gray-600 text-xs">
+            <FaPhone className="text-blue-600 mr-2 text-base" />
+            <span>{tentor.noHp}</span>
+          </div>
+          <div className="flex items-center text-gray-600 text-xs">
+            <FaEnvelope className="text-blue-600 mr-2 text-base" />
+            <span className="truncate">{tentor.email}</span>
+          </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+      <div className="bg-gray-50 px-4 py-2 text-center">
         <p className="text-xs text-gray-500">
           Bergabung sejak{" "}
           {new Date(tentor.dateJoin).toLocaleDateString("id-ID", {

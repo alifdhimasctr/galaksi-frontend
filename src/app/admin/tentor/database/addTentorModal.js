@@ -13,12 +13,19 @@ import {
   FaSchool,
   FaUpload,
   FaFilePdf,
+  FaCalendarAlt,
+  FaClock,
+  FaTrash,
+  FaPlus
 } from "react-icons/fa";
 import axios from "axios";
 import Cookies from "js-cookie";
 import toast from "react-hot-toast";
 import Modal from "@/app/component/modal";
 import Select from 'react-select';
+import TimePicker from 'react-time-picker';
+import 'react-time-picker/dist/TimePicker.css';
+import 'react-clock/dist/Clock.css';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 
@@ -30,6 +37,7 @@ export default function AddTentorModal({ open, onClose, onSuccess }) {
   const [simPreview, setSimPreview] = useState(null);
   const [ktpPreview, setKtpPreview] = useState(null);
   const [cvPreview, setCvPreview] = useState(null);
+  const [schedule, setSchedule] = useState([]);
 
   const [form, setForm] = useState({
     status: "active",
@@ -55,26 +63,38 @@ export default function AddTentorModal({ open, onClose, onSuccess }) {
   useEffect(() => {
     if (!open) return;  
     const fetchMapel = async () => {
-  try {
-    const token = Cookies.get("token");
-    const { data } = await axios.get(`${API}/mapel`, {  
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const options = data.map((item) => ({
-      value: item.id,  // Perhatikan di sini, gunakan 'id' bukan '_id'
-      label: item.name, 
-    }));
-    setMapelOptions(options);
-  } catch (err) {
-    toast.error("Gagal memuat data mapel");
-    setMsg(err?.response?.data?.message || "Gagal memuat data mapel");
-  }
-}
+      try {
+        const token = Cookies.get("token");
+        const { data } = await axios.get(`${API}/mapel`, {  
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const options = data.map((item) => ({
+          value: item.id,
+          label: item.name, 
+        }));
+        setMapelOptions(options);
+      } catch (err) {
+        toast.error("Gagal memuat data mapel");
+        setMsg(err?.response?.data?.message || "Gagal memuat data mapel");
+      }
+    }
     fetchMapel();
   }, [open]);
 
-  
-
+  // Initialize schedule when modal opens
+  useEffect(() => {
+    if (open) {
+      setSchedule([
+        { day: "Senin", slots: [] },
+        { day: "Selasa", slots: [] },
+        { day: "Rabu", slots: [] },
+        { day: "Kamis", slots: [] },
+        { day: "Jumat", slots: [] },
+        { day: "Sabtu", slots: [] },
+        { day: "Minggu", slots: [] },
+      ]);
+    }
+  }, [open]);
 
   const change = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
@@ -96,22 +116,69 @@ export default function AddTentorModal({ open, onClose, onSuccess }) {
   };
 
   const handleMapelChange = (selectedOptions) => {
-  setForm(prev => ({
-    ...prev,
-    mapel: selectedOptions ? selectedOptions.map(opt => opt.value) : []
-  }));
-};
+    setForm(prev => ({
+      ...prev,
+      mapel: selectedOptions ? selectedOptions.map(opt => opt.value) : []
+    }));
+  };
+
+  // SCHEDULE HANDLERS
+  const addTimeSlot = (dayIndex) => {
+    const newSchedule = [...schedule];
+    newSchedule[dayIndex].slots.push({ start: "08:00", end: "10:00" });
+    setSchedule(newSchedule);
+  };
+
+  const removeTimeSlot = (dayIndex, slotIndex) => {
+    const newSchedule = [...schedule];
+    newSchedule[dayIndex].slots.splice(slotIndex, 1);
+    setSchedule(newSchedule);
+  };
+
+  const updateTimeSlot = (dayIndex, slotIndex, field, value) => {
+    const newSchedule = [...schedule];
+    newSchedule[dayIndex].slots[slotIndex][field] = value;
+    setSchedule(newSchedule);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMsg("");
+    
+    // Validate required fields
     if (!form.email || !form.name || form.level.length === 0) {
       return setMsg("Email, Nama, dan Jenjang harus diisi");
     }
+    
+    // Validate schedule
+    const hasSchedule = schedule.some(day => day.slots.length > 0);
+    if (!hasSchedule) {
+      return setMsg("Harap tambahkan setidaknya satu jadwal");
+    }
+    
+    // Validate each time slot
+    for (const day of schedule) {
+      for (const slot of day.slots) {
+        if (!slot.start || !slot.end) {
+          return setMsg("Waktu mulai dan selesai harus diisi");
+        }
+        
+        // Convert time to minutes for comparison
+        const startMinutes = parseInt(slot.start.split(':')[0]) * 60 + parseInt(slot.start.split(':')[1]);
+        const endMinutes = parseInt(slot.end.split(':')[0]) * 60 + parseInt(slot.end.split(':')[1]);
+        
+        if (startMinutes >= endMinutes) {
+          return setMsg("Waktu mulai harus sebelum waktu selesai");
+        }
+      }
+    }
+
     try {
       setLoading(true);
       const token = Cookies.get("token");
       const formData = new FormData();
+      
+      // Append form fields
       formData.append("name", form.name);
       formData.append("email", form.email);
       formData.append("noHp", form.noHp);
@@ -129,6 +196,16 @@ export default function AddTentorModal({ open, onClose, onSuccess }) {
       formData.append("cv", form.cv);
       formData.append("bankName", form.bankName);
       formData.append("bankNumber", form.bankNumber);
+      
+      // Prepare and append schedule in the new format
+      const formattedSchedule = schedule
+        .filter(day => day.slots.length > 0)
+        .map(day => ({
+          day: day.day,
+          slots: day.slots.map(slot => `${slot.start}-${slot.end}`)
+        }));
+      
+      formData.append("schedule", JSON.stringify(formattedSchedule));
 
       await axios.post(`${API}/register/tentor`, formData, {
         headers: {
@@ -166,6 +243,7 @@ export default function AddTentorModal({ open, onClose, onSuccess }) {
       setSimPreview(null);
       setKtpPreview(null);
       setCvPreview(null);
+      setSchedule([]);
     }
   }, [open]);
 
@@ -265,16 +343,16 @@ export default function AddTentorModal({ open, onClose, onSuccess }) {
         </Label>
 
         <Label text="Mapel yang Diajarkan">
-  <Select
-    isMulti
-    options={mapelOptions}
-    styles={selectStyles}
-    placeholder="Pilih Mapel"
-    onChange={handleMapelChange}
-    value={mapelOptions.filter(opt => form.mapel.includes(opt.value))}
-    closeMenuOnSelect={false}
-  />
-</Label>
+          <Select
+            isMulti
+            options={mapelOptions}
+            styles={selectStyles}
+            placeholder="Pilih Mapel"
+            onChange={handleMapelChange}
+            value={mapelOptions.filter(opt => form.mapel.includes(opt.value))}
+            closeMenuOnSelect={false}
+          />
+        </Label>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Label text="Nama Bank">
@@ -287,6 +365,71 @@ export default function AddTentorModal({ open, onClose, onSuccess }) {
           <Label text="Nomor Rekening">
             <Input value={form.bankNumber} onChange={change("bankNumber")} />
           </Label>
+        </div>
+
+        {/* SCHEDULE SECTION */}
+        <div className="mt-4">
+          <h3 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <FaCalendarAlt className="text-blue-500" /> Jadwal Tersedia
+          </h3>
+          <p className="text-sm text-gray-500 mb-3">Tambahkan waktu yang tersedia untuk mengajar</p>
+          
+          <div className="space-y-4">
+            {schedule.map((day, dayIndex) => (
+              <div key={day.day} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <FaClock className="text-blue-500" /> {day.day}
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => addTimeSlot(dayIndex)}
+                    className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex items-center gap-1"
+                  >
+                    <FaPlus className="text-xs" /> Tambah Waktu
+                  </button>
+                </div>
+                
+                {day.slots.length === 0 ? (
+                  <p className="text-gray-500 text-sm italic">Belum ada waktu tersedia</p>
+                ) : (
+                  <div className="space-y-3">
+                    {day.slots.map((slot, slotIndex) => (
+                      <div key={slotIndex} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-gray-50 rounded-md">
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="text-gray-700 w-20">Mulai:</span>
+                          <TimePicker
+                            onChange={(value) => updateTimeSlot(dayIndex, slotIndex, 'start', value)}
+                            value={slot.start}
+                            disableClock={true}
+                            className="time-picker"
+                          />
+                        </div>
+                        
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="text-gray-700 w-20">Selesai:</span>
+                          <TimePicker
+                            onChange={(value) => updateTimeSlot(dayIndex, slotIndex, 'end', value)}
+                            value={slot.end}
+                            disableClock={true}
+                            className="time-picker"
+                          />
+                        </div>
+                        
+                        <button
+                          type="button"
+                          onClick={() => removeTimeSlot(dayIndex, slotIndex)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-full self-end sm:self-auto"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -367,6 +510,31 @@ export default function AddTentorModal({ open, onClose, onSuccess }) {
           </button>
         </div>
       </form>
+      
+      <style jsx global>{`
+        .time-picker {
+          width: 100%;
+        }
+        .time-picker .react-time-picker__wrapper {
+          border: 1px solid #d1d5db;
+          border-radius: 0.375rem;
+          padding: 0.5rem;
+          background: white;
+        }
+        .time-picker .react-time-picker__inputGroup {
+          min-width: 70px;
+        }
+        .time-picker .react-time-picker__inputGroup__input {
+          color: #4b5563;
+        }
+        .time-picker .react-time-picker__button {
+          padding: 0 0.5rem;
+        }
+        .time-picker .react-time-picker__button svg {
+          width: 1rem;
+          height: 1rem;
+        }
+      `}</style>
     </Modal>
   );
 }

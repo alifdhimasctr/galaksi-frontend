@@ -66,6 +66,7 @@ export default function PresensiTentorPage() {
             Absent: "bg-red-100 text-red-700",
             Present: "bg-green-100 text-green-700",
             RescheduleRequest: "bg-orange-100 text-orange-700",
+            PresentRequest: "bg-yellow-100 text-yellow-700", // Tambahkan ini
           };
           return (
             <span
@@ -75,6 +76,8 @@ export default function PresensiTentorPage() {
                 ? "Belum Hadir"
                 : status === "Present"
                 ? "Hadir"
+                : status === "PresentRequest"
+                ? "Menunggu Konfirmasi" // Status baru
                 : "Request Reschedule"}
             </span>
           );
@@ -113,33 +116,35 @@ export default function PresensiTentorPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Tabs */}
-        <div className="border-b border-gray-200">
-          <nav className="flex gap-6">
-            {["Absent", "Present", "RescheduleRequest"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`pb-3 px-1 border-b-2 font-medium ${
-                  activeTab === tab
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                {tab === "Absent"
-                  ? "Belum Hadir"
-                  : tab === "Present"
-                  ? "Hadir"
-                  : "Request Reschedule"}
-                <span className="ml-2 bg-gray-100 px-2 py-1 rounded-full text-xs">
-                  {attendances.filter((a) => a.attendanceStatus === tab).length}
-                </span>
-              </button>
-            ))}
-          </nav>
-        </div>
 
-        {/* Jadwal Hari Ini - Hanya tampil di tab Absent */}
+          <div className="border-b border-gray-200">
+            <nav className="flex gap-6">
+              {["Absent", "Present", "RescheduleRequest", "PresentRequest"].map((tab) => (
+                <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`pb-3 px-1 border-b-2 font-medium ${
+              activeTab === tab
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+                >
+            {tab === "Absent"
+              ? "Belum Hadir"
+              : tab === "Present"
+              ? "Hadir"
+              : tab === "PresentRequest"
+              ? "Request Present"
+              : "Request Reschedule"}
+            <span className="ml-2 bg-gray-100 px-2 py-1 rounded-full text-xs">
+              {attendances.filter((a) => a.attendanceStatus === tab).length}
+            </span>
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          {/* Jadwal Hari Ini - Hanya tampil di tab Absent */}
         {activeTab === "Absent" && (
           <div className="bg-white p-4 rounded-lg shadow-md border border-blue-100">
             <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">

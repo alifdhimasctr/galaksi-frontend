@@ -24,8 +24,8 @@ import {
   FaList,
 } from "react-icons/fa";
 
-const BLUE = "text-blue-600";
-const GOLD = "text-yellow-500";
+const BLUE = "text-blue-400";
+const GOLD = "text-yellow-400";
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
@@ -48,7 +48,6 @@ export default function DashboardLayout({ children }) {
 
   /* ---------------- MENU DATA ---------------- */
   const menus = {
-    // MAIN label, icon, optional children
     admin: [
       {
         label: "Dashboard",
@@ -63,7 +62,6 @@ export default function DashboardLayout({ children }) {
           { label: "Presensi", link: "/admin/siswa/presensi"},
           { label: "Invoice", link: "/admin/siswa/invoice"},
           { label: "Pendaftaran Siswa", link: "/admin/siswa/paket"},
-          
         ],
       },
       {
@@ -87,7 +85,6 @@ export default function DashboardLayout({ children }) {
         label: "Paket",
         icon: <FaBookOpen />,
         link: "/admin/paket",
-
       },
       {
         label: "Mapel",
@@ -140,11 +137,14 @@ export default function DashboardLayout({ children }) {
     transition: mobileOpen 
       ? "transform 300ms cubic-bezier(0.4, 0, 0.2, 1), width 300ms" 
       : "width 300ms cubic-bezier(0.4, 0, 0.2, 1)",
+    background: "linear-gradient(180deg, #23272f 0%, #111317 100%)",
   };
 
   const menuItemStyle = (isActive) => 
     `flex items-center rounded-lg mx-3 my-1 gap-3 py-3 px-3 cursor-pointer text-sm transition-all duration-200
-    ${isActive ? `bg-blue-50 ${BLUE} font-medium` : "text-gray-600 hover:bg-blue-50 hover:text-blue-600"}
+    ${isActive 
+      ? `bg-blue-900/30 text-white border-l-4 border-yellow-400 font-medium shadow-md` 
+      : "text-blue-100 hover:bg-blue-800/50 hover:text-white"}
     ${!showText ? "justify-center" : ""}`;
 
   /* ---------------- MODIFIED COMPONENTS ---------------- */
@@ -153,7 +153,9 @@ export default function DashboardLayout({ children }) {
     return (
       <Link href={item.link} onClick={() => setMobileOpen(false)}>
         <div className={menuItemStyle(isActive)}>
-          <span className="text-lg">{item.icon}</span>
+          <span className={`text-lg ${isActive ? GOLD : BLUE}`}>
+            {item.icon}
+          </span>
           {showText && (
             <span className="text-xs transition-opacity duration-200">
               {item.label}
@@ -174,14 +176,16 @@ export default function DashboardLayout({ children }) {
           onClick={() => setOpenGroup(open ? null : group.label)}
           className={menuItemStyle(isGroupActive)}
         >
-          <span className="text-lg">{group.icon}</span>
+          <span className={`text-lg ${isGroupActive ? GOLD : BLUE}`}>
+            {group.icon}
+          </span>
           {showText && (
             <>
               <span className="text-xs flex-1">{group.label}</span>
               <FaChevronRight
                 className={`transform transition-transform ${
                   open ? "rotate-90" : "rotate-0"
-                } text-xs`}
+                } text-xs ${isGroupActive ? "text-yellow-400" : "text-blue-300"}`}
               />
             </>
           )}
@@ -204,11 +208,9 @@ export default function DashboardLayout({ children }) {
 
   const toggleCollapse = () => {
     if (!isCollapsed) {
-      // want to collapse
       setShowText(false);
       setIsCollapsed(true);
     } else {
-      // expand – wait 300ms before showing text
       setIsCollapsed(false);
       setTimeout(() => setShowText(true), 100);
     }
@@ -225,28 +227,31 @@ export default function DashboardLayout({ children }) {
         />
       )}
 
-      {/* Enhanced Sidebar */}
+      {/* Enhanced Sidebar - Blue Gradient */}
       <aside
-        className={`bg-white shadow-lg z-50 fixed md:relative inset-y-0 left-0
+        className={`shadow-lg z-50 fixed md:relative inset-y-0 left-0
           transform transition-all duration-300 ease-in-out
           ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
         style={sidebarStyle}
       >
         {/* Improved Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 h-14">
+        <div className="flex items-center justify-between p-4 border-b border-blue-700 h-14">
           {!isCollapsed && (
-            <h1 className="text-sm font-semibold text-blue-600 truncate">
+            <h1 className="text-sm font-semibold text-white truncate">
               {user?.name}
+              <span className="block text-xs font-normal text-blue-200 capitalize">
+                {user?.role}
+              </span>
             </h1>
           )}
           <button
             onClick={toggleCollapse}
-            className="p-3 rounded-md hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-md hover:bg-blue-800/50 transition-colors text-blue-200 hover:text-yellow-400"
           >
             {isCollapsed ? (
-              <FaChevronRight className="text-gray-600" />
+              <FaChevronRight className="text-lg" />
             ) : (
-              <FaChevronLeft className="text-gray-600" />
+              <FaChevronLeft className="text-lg" />
             )}
           </button>
         </div>
@@ -265,25 +270,25 @@ export default function DashboardLayout({ children }) {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Improved Topbar */}
-        <header className="flex items-center justify-between bg-white shadow-sm px-6 py-3 h-14">
+        {/* Improved Topbar - Solid Blue */}
+        <header className="flex items-center justify-between bg-gradient-to-r from-blue-800 to-blue-700 shadow-md px-6 py-3 h-14">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+            className="md:hidden p-2 rounded-lg hover:bg-blue-900/30 text-white hover:text-yellow-400"
           >
-            <FaBars className="text-gray-600" />
+            <FaBars className="text-lg" />
           </button>
           
-          <h1 className="text-lg font-semibold text-gray-800 capitalize">
+          <h1 className="text-lg font-semibold text-white capitalize">
             {pathname.split("/").slice(-1)[0].replace(/-/g, " ")}
           </h1>
           
           <div className="flex items-center gap-4">
             <div className="hidden md:flex flex-col items-end">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-white">
                 {user.role === "admin" ? user.username : user.name}
               </span>
-              <span className="text-xs text-gray-500 capitalize">
+              <span className="text-xs text-blue-200 capitalize">
                 {user.role}
               </span>
             </div>
@@ -293,14 +298,14 @@ export default function DashboardLayout({ children }) {
                 Cookies.remove("token");
                 router.replace("/login");
               }}
-              className="p-2 rounded-lg hover:bg-red-50 transition-colors text-red-500 hover:text-red-600"
+              className="p-2 rounded-lg bg-yellow-500 hover:bg-yellow-600 transition-colors text-white"
             >
               <FaSignOutAlt className="text-lg" />
             </button>
           </div>
         </header>
 
-        <main className="flex-1 p-6 overflow-y-auto bg-gray-50">
+        <main className="flex-1 p-6 overflow-y-auto bg-gradient-to-br from-gray-50 to-blue-50">
           {children}
         </main>
       </div>

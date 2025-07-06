@@ -13,12 +13,19 @@ import {
   FaSchool,
   FaUpload,
   FaFilePdf,
+  FaCalendarAlt,
+  FaClock,
+  FaTrash,
+  FaPlus,
 } from "react-icons/fa";
 import axios from "axios";
 import Cookies from "js-cookie";
 import toast from "react-hot-toast";
 import Modal from "@/app/component/modal";
 import Select from "react-select";
+import TimePicker from "react-time-picker";
+import "react-time-picker/dist/TimePicker.css";
+import "react-clock/dist/Clock.css";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 
@@ -35,6 +42,7 @@ export default function EditTentorModal({
   const [simPreview, setSimPreview] = useState(null);
   const [ktpPreview, setKtpPreview] = useState(null);
   const [cvPreview, setCvPreview] = useState(null);
+  const [schedule, setSchedule] = useState([]);
 
   const [form, setForm] = useState({
     status: "active",
@@ -57,57 +65,132 @@ export default function EditTentorModal({
     bankNumber: "",
   });
 
+  // Fungsi untuk mengonversi format jadwal
+  const convertScheduleFormat = (apiSchedule) => {
+    // ensure we always return all days
+    const days = [
+      "Senin",
+      "Selasa",
+      "Rabu",
+      "Kamis",
+      "Jumat",
+      "Sabtu",
+      "Minggu",
+    ];
+
+    if (!Array.isArray(apiSchedule) || apiSchedule.length === 0) {
+      // no schedule → empty slots for every day
+      return days.map((day) => ({ day, slots: [] }));
+    }
+
+    return days.map((day) => {
+      const daySchedule = apiSchedule.find((s) => s.day === day);
+      if (!daySchedule) return { day, slots: [] };
+
+      return {
+        day,
+        slots: daySchedule.slots.map((slot) => {
+          // 1) If we already have { start, end }
+          if (slot.start && slot.end) {
+            return slot;
+          }
+          // 2) If the API gave us { time: "HH:MM-HH:MM", booked: ... }
+          if (slot.time && typeof slot.time === "string") {
+            const [start, end] = slot.time.split("-");
+            return { start, end };
+          }
+          // 3) If it’s just a flat string
+          if (typeof slot === "string") {
+            const [start, end] = slot.split("-");
+            return { start, end };
+          }
+          // fallback
+          console.warn("Unknown slot format:", slot);
+          return { start: "08:00", end: "10:00" };
+        }),
+      };
+    });
+  };
+
   useEffect(() => {
     if (!open) return;
 
     const fetchData = async () => {
-  try {
-    const token = Cookies.get("token");
-    
-    // Fetch tentor data
-    const { data: tentorData } = await axios.get(`${API}/users/tentor/${tentorId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+      try {
+        const token = Cookies.get("token");
 
-    // Fetch mapel options
-    const { data: mapelData } = await axios.get(`${API}/mapel`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+        // Fetch tentor data
+        const { data: tentorData } = await axios.get(
+          `${API}/users/tentor/${tentorId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        console.log(
+          "Data schedule dari API sebelum konversi:",
+          tentorData.schedule
+        );
+        const formattedSchedule = convertScheduleFormat(tentorData.schedule);
+        console.log("Data schedule setelah konversi:", formattedSchedule);
+        setSchedule(formattedSchedule);
 
-    const mapelOptions = mapelData.map((item) => ({
-      value: item.id,
-      label: item.name,
-    }));
+        // Fetch mapel options
+        const { data: mapelData } = await axios.get(`${API}/mapel`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-    setMapelOptions(mapelOptions);
+        const mapelOptions = mapelData.map((item) => ({
+          value: item.id,
+          label: item.name,
+        }));
 
-    // Cari ID mapel berdasarkan nama mapel yang ada di tentorData.mapel
-    const tentorMapelIds = tentorData.mapel
-      ? tentorData.mapel.map(mapelName => {
-          const found = mapelData.find(m => m.name === mapelName);
-          return found ? found.id : null;
-        }).filter(id => id !== null)
-      : [];
+        setMapelOptions(mapelOptions);
 
-    // Set form data
-    setForm({
-      ...tentorData,
-      status: tentorData.status || "active",
-      level: tentorData.level || [],
-      mapel: tentorMapelIds, // Gunakan ID mapel yang sudah dicari
-    });
+        // Cari ID mapel berdasarkan nama mapel yang ada di tentorData.mapel
+        const tentorMapelIds = tentorData.mapel
+          ? tentorData.mapel
+              .map((mapelName) => {
+                const found = mapelData.find((m) => m.name === mapelName);
+                return found ? found.id : null;
+              })
+              .filter((id) => id !== null)
+          : [];
 
-    // Set previews untuk existing files
-    if (tentorData.fotoUrl) setFotoPreview(tentorData.fotoUrl);
-    if (tentorData.simUrl) setSimPreview(tentorData.simUrl);
-    if (tentorData.ktpUrl) setKtpPreview(tentorData.ktpUrl);
-    if (tentorData.cvUrl) setCvPreview(tentorData.cvUrl);
+        // Set form data
+        setForm({
+          ...tentorData,
+          status: tentorData.status || "active",
+          level: tentorData.level || [],
+          mapel: tentorMapelIds, // Gunakan ID mapel yang sudah dicari
+        });
 
-  } catch (err) {
-    toast.error("Gagal memuat data");
-    setMsg(err?.response?.data?.message || "Gagal memuat data");
-  }
-};
+        // Set previews untuk existing files
+        if (tentorData.fotoUrl) setFotoPreview(tentorData.fotoUrl);
+        if (tentorData.simUrl) setSimPreview(tentorData.simUrl);
+        if (tentorData.ktpUrl) setKtpPreview(tentorData.ktpUrl);
+        if (tentorData.cvUrl) setCvPreview(tentorData.cvUrl);
+
+        // Set schedule data jika ada
+        if (tentorData.schedule && tentorData.schedule.length > 0) {
+          const formattedSchedule = convertScheduleFormat(tentorData.schedule);
+          setSchedule(formattedSchedule);
+        } else {
+          // Inisialisasi jadwal kosong jika tidak ada data
+          setSchedule([
+            { day: "Senin", slots: [] },
+            { day: "Selasa", slots: [] },
+            { day: "Rabu", slots: [] },
+            { day: "Kamis", slots: [] },
+            { day: "Jumat", slots: [] },
+            { day: "Sabtu", slots: [] },
+            { day: "Minggu", slots: [] },
+          ]);
+        }
+      } catch (err) {
+        toast.error("Gagal memuat data");
+        setMsg(err?.response?.data?.message || "Gagal memuat data");
+      }
+    };
 
     fetchData();
   }, [open, tentorId]);
@@ -141,52 +224,129 @@ export default function EditTentorModal({
     }));
   };
 
+  // Fungsi untuk menambah slot waktu
+  const addTimeSlot = (dayIndex) => {
+    const newSchedule = [...schedule];
+    newSchedule[dayIndex].slots.push({ start: "08:00", end: "10:00" });
+    setSchedule(newSchedule);
+  };
+
+  // Fungsi untuk menghapus slot waktu
+  const removeTimeSlot = (dayIndex, slotIndex) => {
+    const newSchedule = [...schedule];
+    newSchedule[dayIndex].slots.splice(slotIndex, 1);
+    setSchedule(newSchedule);
+  };
+
+  // Fungsi untuk mengupdate slot waktu
+  const updateTimeSlot = (dayIndex, slotIndex, field, value) => {
+    const newSchedule = [...schedule];
+    newSchedule[dayIndex].slots[slotIndex][field] = value;
+    setSchedule(newSchedule);
+  };
+
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setMsg("");
-  if (!form.email || !form.name || form.level.length === 0) {
-    return setMsg("Email, Nama, dan Jenjang harus diisi");
-  }
-  try {
-    setLoading(true);
-    const token = Cookies.get("token");
-    const formData = new FormData();
+    e.preventDefault();
+    setMsg("");
 
-    // Append all fields except 'ktpUrl', 'fotoUrl', 'simUrl', and 'cvUrl'
-    Object.keys(form).forEach((key) => {
-      if (
-        key === "level" ||
-        key === "mapel"
-      ) {
-        formData.append(key, JSON.stringify(form[key]));
-      } else if (
-        !["ktpUrl", "fotoUrl", "simUrl", "cvUrl"].includes(key) &&
-        form[key] !== null &&
-        form[key] !== undefined
-      ) {
-        formData.append(key, form[key]);
-      }
+    console.log("Form data sebelum submit:", form);
+    console.log("Schedule state sebelum submit:", schedule);
+
+    // Validasi field wajib
+    if (!form.email || !form.name || form.level.length === 0) {
+      return setMsg("Email, Nama, dan Jenjang harus diisi");
+    }
+
+    // Validasi jadwal
+    const hasSchedule = schedule.some((day) => day.slots.length > 0);
+    if (!hasSchedule) {
+      return setMsg("Harap tambahkan setidaknya satu jadwal");
+    }
+
+    // Validasi setiap slot waktu
+    let scheduleValid = true;
+    let scheduleError = "";
+
+    schedule.forEach((day, dayIndex) => {
+      day.slots.forEach((slot, slotIndex) => {
+        if (!slot.start || !slot.end) {
+          scheduleValid = false;
+          scheduleError = "Waktu mulai dan selesai harus diisi";
+          return;
+        }
+
+        // Validasi format waktu
+        const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+        if (!timeRegex.test(slot.start) || !timeRegex.test(slot.end)) {
+          scheduleValid = false;
+          scheduleError = "Format waktu harus HH:MM (contoh: 08:30)";
+          return;
+        }
+
+        // Konversi waktu ke menit untuk perbandingan
+        const startParts = slot.start.split(":");
+        const endParts = slot.end.split(":");
+
+        const startMinutes =
+          parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+        const endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+
+        if (startMinutes >= endMinutes) {
+          scheduleValid = false;
+          scheduleError = "Waktu mulai harus sebelum waktu selesai";
+          return;
+        }
+      });
     });
 
-    await axios.put(`${API}/tentor/${tentorId}`, formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    if (!scheduleValid) {
+      return setMsg(scheduleError);
+    }
 
-    setLoading(false);
-    onSuccess();
-    toast.success("Tentor berhasil diperbarui");
-    onClose();
-  } catch (err) {
-    setLoading(false);
-    toast.error("Gagal memperbarui tentor");
-    setMsg(err?.response?.data?.message || "Gagal memperbarui tentor");
-  }
-};
+    try {
+      setLoading(true);
+      const token = Cookies.get("token");
+      const formData = new FormData();
 
+      // Append semua field kecuali URL file
+      Object.keys(form).forEach((key) => {
+        if (key === "level" || key === "mapel") {
+          formData.append(key, JSON.stringify(form[key]));
+        } else if (
+          !["ktpUrl", "fotoUrl", "simUrl", "cvUrl"].includes(key) &&
+          form[key] !== null &&
+          form[key] !== undefined
+        ) {
+          formData.append(key, form[key]);
+        }
+      });
 
+      // Format jadwal untuk dikirim ke backend
+      const formattedSchedule = schedule
+  .filter(day => day.slots.length > 0)
+  .map(day => ({
+    day: day.day,
+    slots: day.slots.map(s => `${s.start}-${s.end}`)
+  }));
+      formData.append("schedule", JSON.stringify(formattedSchedule));
+
+      await axios.put(`${API}/tentor/${tentorId}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      setLoading(false);
+      onSuccess();
+      toast.success("Tentor berhasil diperbarui");
+      onClose();
+    } catch (err) {
+      setLoading(false);
+      toast.error("Gagal memperbarui tentor");
+      setMsg(err?.response?.data?.message || "Gagal memperbarui tentor");
+    }
+  };
 
   const statusOptions = [
     { value: "active", label: "Aktif" },
@@ -354,6 +514,90 @@ export default function EditTentorModal({
           />
         </Label>
 
+        {/* SECTION JADWAL */}
+        <div className="mt-4">
+          <h3 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <FaCalendarAlt className="text-blue-500" /> Jadwal Tersedia
+          </h3>
+          <p className="text-sm text-gray-500 mb-3">
+            Atur waktu yang tersedia untuk mengajar
+          </p>
+
+          <div className="space-y-4">
+            {schedule.map((day, dayIndex) => (
+              <div
+                key={day.day}
+                className="border border-gray-200 rounded-lg p-4"
+              >
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <FaClock className="text-blue-500" /> {day.day}
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => addTimeSlot(dayIndex)}
+                    className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex items-center gap-1"
+                  >
+                    <FaPlus className="text-xs" /> Tambah Waktu
+                  </button>
+                </div>
+
+                {day.slots.length === 0 ? (
+                  <p className="text-gray-500 text-sm italic">
+                    Belum ada waktu tersedia
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {day.slots.map((slot, slotIndex) => (
+                      <div
+                        key={slotIndex}
+                        className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-gray-50 rounded-md"
+                      >
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="text-gray-700 w-20">Mulai:</span>
+                          <TimePicker
+                            onChange={(value) =>
+                              updateTimeSlot(
+                                dayIndex,
+                                slotIndex,
+                                "start",
+                                value
+                              )
+                            }
+                            value={slot.start}
+                            disableClock={true}
+                            className="time-picker"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="text-gray-700 w-20">Selesai:</span>
+                          <TimePicker
+                            onChange={(value) =>
+                              updateTimeSlot(dayIndex, slotIndex, "end", value)
+                            }
+                            value={slot.end}
+                            disableClock={true}
+                            className="time-picker"
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => removeTimeSlot(dayIndex, slotIndex)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-full self-end sm:self-auto"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Label text="Nama Bank">
             <Input
@@ -447,6 +691,31 @@ export default function EditTentorModal({
           </button>
         </div>
       </form>
+
+      <style jsx global>{`
+        .time-picker {
+          width: 100%;
+        }
+        .time-picker .react-time-picker__wrapper {
+          border: 1px solid #d1d5db;
+          border-radius: 0.375rem;
+          padding: 0.5rem;
+          background: white;
+        }
+        .time-picker .react-time-picker__inputGroup {
+          min-width: 70px;
+        }
+        .time-picker .react-time-picker__inputGroup__input {
+          color: #4b5563;
+        }
+        .time-picker .react-time-picker__button {
+          padding: 0 0.5rem;
+        }
+        .time-picker .react-time-picker__button svg {
+          width: 1rem;
+          height: 1rem;
+        }
+      `}</style>
     </Modal>
   );
 }
