@@ -104,7 +104,7 @@ export default function LoginPage() {
       <div className="flex flex-1 items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <h2 className="text-3xl font-semibold text-gray-900">Login</h2>
-          <p className="mt-2 text-sm text-gray-500">Selamat datang kembali! Silakan masuk ke akun Anda.</p>
+          <p className="mt-2 text-sm text-gray-500">Selamat datang kembali! Silahkan masuk ke akun Anda.</p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
             {/* E‑mail */}
@@ -112,7 +112,7 @@ export default function LoginPage() {
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
                 User Name
               </label>
-              <Mail className="absolute left-3 top-10 h-4 w-4 text-gray-400" />
+              <Mail className="absolute left-3 top-9 h-4 w-4 text-gray-400" />
               <input
                 id="username"
                 name="username"
@@ -130,7 +130,7 @@ export default function LoginPage() {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 Password
               </label>
-              <Lock className="absolute left-3 top-10 h-4 w-4 text-gray-400" />
+              <Lock className="absolute left-3 top-9 h-4 w-4 text-gray-400" />
               <input
                 id="password"
                 name="password"
