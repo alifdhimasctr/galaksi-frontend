@@ -151,19 +151,23 @@ export default function ApprovePaketPage() {
       <div className="space-y-6">
         <div className="border-b border-gray-200">
           <nav className="flex gap-6">
-            {["NonApprove", "Approve", "Reject"].map((tab) => (
+            {[
+              { key: "NonApprove", label: "Belum Disetujui" },
+              { key: "Approve", label: "Disetujui" },
+              { key: "Reject", label: "Ditolak" },
+            ].map((tab) => (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
                 className={`pb-3 px-1 border-b-2 font-medium ${
-                  activeTab === tab
+                  activeTab === tab.key
                     ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
-                {tab}
+                {tab.label}
                 <span className="ml-2 bg-gray-100 px-2 py-1 rounded-full text-xs">
-                  {orders.filter((o) => o.status === tab).length}
+                  {orders.filter((o) => o.status === tab.key).length}
                 </span>
               </button>
             ))}
@@ -179,8 +183,19 @@ export default function ApprovePaketPage() {
             columns={columns}
             onSearch={true}
             filterOptions={{
-              title: `Paket ${activeTab}`,
-              description: `Kelola paket dengan status ${activeTab}`,
+              title: `Paket ${["NonApprove", "Approve", "Reject"].find(t => t === activeTab) === "NonApprove"
+                ? "Belum Disetujui"
+                : activeTab === "Approve"
+                ? "Disetujui"
+                : "Ditolak"
+              }`,
+              description: `Kelola paket dengan status ${
+                ["NonApprove", "Approve", "Reject"].find(t => t === activeTab) === "NonApprove"
+                  ? "belum disetujui"
+                  : activeTab === "Approve"
+                  ? "disetujui"
+                  : "ditolak"
+              }`,
               filters: [],
             }}
             paginationOptions={{
@@ -198,68 +213,60 @@ export default function ApprovePaketPage() {
           }}
           onSuccess={() => {
             refreshOrders();
-            
           }}
-          />
+        />
 
+        <EditModal
+          open={openEditModal}
+          onClose={() => {
+            setOpenEditModal(false);
+            setSelectedOrderId(null);
+          }}
+          onSuccess={() => {
+            refreshOrders();
+            toast.success("Order berhasil diperbarui");
+          }}
+          orderId={selectedOrderId}
+        />
 
+        <DeleteModal
+          open={openDeleteModal}
+          onClose={() => {
+            setOpenDeleteModal(false);
+            setSelectedOrderId(null);
+          }}
+          onSuccess={() => {
+            refreshOrders();
+            toast.success("Order berhasil dihapus");
+          }}
+          orderId={selectedOrderId}
+        />
 
-          <EditModal
-            open={openEditModal}
-            onClose={() => {
-              setOpenEditModal(false);
-              setSelectedOrderId(null);
-            }}
-            onSuccess={() => {
-              refreshOrders();
-              toast.success("Order berhasil diperbarui");
-            }}
-            orderId={selectedOrderId}
-          />
+        <ApproveModal
+          open={openApproveModal}
+          onClose={() => {
+            setOpenApproveModal(false);
+            setSelectedOrderId(null);
+          }}
+          orderId={selectedOrderId}
+          onSuccess={() => {
+            refreshOrders();
+            toast.success("Order berhasil disetujui");
+          }}
+        />
 
-
-
-          <DeleteModal
-            open={openDeleteModal}
-            onClose={() => {
-              setOpenDeleteModal(false);
-              setSelectedOrderId(null);
-            }}
-            onSuccess={() => {
-              refreshOrders();
-              toast.success("Order berhasil dihapus");
-            }}
-            orderId={selectedOrderId}
-          />
-
-          <ApproveModal
-            open={openApproveModal}
-            onClose={() => {
-              setOpenApproveModal(false);
-              setSelectedOrderId(null);
-            }}
-            orderId={selectedOrderId}
-            onSuccess={() => {
-              refreshOrders();
-              toast.success("Order berhasil disetujui");
-            }}
-          />
-
-          <RejectModal
-            open={openRejectModal}
-            onClose={() => {
-              setOpenRejectModal(false);
-              setSelectedOrderId(null);
-            }}
-            orderId={selectedOrderId}
-            onSuccess={() => {
-              refreshOrders();
-              toast.success("Order berhasil ditolak");
-            }}
-          />
-
-
-        
+        <RejectModal
+          open={openRejectModal}
+          onClose={() => {
+            setOpenRejectModal(false);
+            setSelectedOrderId(null);
+          }}
+          orderId={selectedOrderId}
+          onSuccess={() => {
+            refreshOrders();
+            toast.success("Order berhasil ditolak");
+          }}
+        />
       </div>
     </DashboardLayout>
   );

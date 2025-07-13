@@ -66,7 +66,6 @@ export default function InvoicePage() {
   const columns = useMemo(() => {
     const baseColumns = [
       { accessorKey: "siswa.name", header: "Nama Siswa" },
-      { accessorKey: "siswa.level", header: "Jenjang" },
       { accessorKey: "mitra.name", header: "Mitra" },
       { accessorKey: "paket.name", header: "Paket" },
       { accessorKey: "price", header: "Total Harga" },

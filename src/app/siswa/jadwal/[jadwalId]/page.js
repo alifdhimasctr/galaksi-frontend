@@ -23,7 +23,7 @@ export default function ConfirmPresensiPage() {
         // Redirect setelah 3 detik
         setTimeout(() => {
           router.push("/");
-        }, 3000);
+        }, 8000);
       } catch (error) {
         setStatus("error");
         setMessage(error.response?.data?.message || "Terjadi kesalahan saat mengkonfirmasi");

@@ -10,7 +10,7 @@ const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 export default function AttendancePage() {
   const [attendances, setAttendances] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('Absent');
+  const [activeTab, setActiveTab] = useState("Absent");
 
   useEffect(() => {
     const fetchAttendances = async () => {
@@ -30,37 +30,64 @@ export default function AttendancePage() {
   }, []);
 
   const filteredAttendances = useMemo(() => {
-    return attendances.filter(a => a.attendanceStatus === activeTab);
+    return attendances.filter((a) => a.attendanceStatus === activeTab);
   }, [attendances, activeTab]);
 
-  const columns = useMemo(() => [
-    { accessorKey: "siswaName", header: "Nama Siswa" },
-    { accessorKey: "tentorName", header: "Nama Tentor" },
-    {
-      header: "Hari/Tanggal",
-      cell: ({ row }) => {
-        const { dayName, date } = row.original;
-        return <span>{dayName} - {date}</span>;
-      }
-    },
-    { accessorKey: "time", header: "Waktu" },
-    {
-      accessorKey: "attendanceStatus",
-      header: "Status",
-      cell: ({ getValue }) => {
-        const status = getValue();
-        const statusStyle = {
-          Absent: "bg-red-100 text-red-700",
-          Present: "bg-green-100 text-green-700"
-        };
+  const columns = useMemo(() => {
+    const baseColumns = [
+      { accessorKey: "siswaName", header: "Nama Siswa" },
+      { accessorKey: "tentorName", header: "Nama Tentor" },
+      {
+        header: "Hari/Tanggal",
+        cell: ({ row }) => {
+          const { dayName, date } = row.original;
+          return (
+            <span>
+              {dayName} - {date}
+            </span>
+          );
+        },
+      },
+      { accessorKey: "time", header: "Waktu" },
+      {
+        accessorKey: "attendanceStatus",
+        header: "Status",
+        cell: ({ getValue }) => {
+          const status = getValue();
+          const statusStyle = {
+            Absent: "bg-red-100 text-red-700",
+            Present: "bg-green-100 text-green-700",
+          };
+          return (
+            <span
+              className={`px-2 py-1 rounded-full text-xs ${statusStyle[status]}`}
+            >
+              {status === "Absent" ? "Belum Hadir" : "Hadir"}
+            </span>
+          );
+        },
+      },
+    ];
+    if (activeTab === "Present") {
+      return [
+      ...baseColumns,
+      {
+        accessorKey: "presensiTime",
+        header: "Waktu Presensi",
+        cell: ({ row }) => {
+        const presensiTime = row.original.presentAt;
         return (
-          <span className={`px-2 py-1 rounded-full text-xs ${statusStyle[status]}`}>
-            {status === 'Absent' ? 'Belum Hadir' : 'Hadir'}
+          <span className="text-green-700 font-medium">
+          {presensiTime ? presensiTime : "-"}
           </span>
         );
-      }
+        },
+      },
+      ];
     }
-  ], [activeTab]);
+
+    return baseColumns
+  }, [activeTab]);
 
   return (
     <DashboardLayout>
@@ -68,17 +95,17 @@ export default function AttendancePage() {
         {/* Tabs */}
         <div className="border-b border-gray-200">
           <nav className="flex gap-6">
-            {['Absent', 'Present'].map((tab) => (
+            {["Absent", "Present"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`pb-3 px-1 border-b-2 font-medium ${
                   activeTab === tab
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
-                {tab === 'Absent' ? 'Belum Hadir' : 'Hadir'}
+                {tab === "Absent" ? "Belum Hadir" : "Hadir"}
               </button>
             ))}
           </nav>
@@ -93,11 +120,15 @@ export default function AttendancePage() {
             columns={columns}
             onSearch={true}
             filterOptions={{
-              title: `Kehadiran - ${activeTab === 'Absent' ? 'Belum Hadir' : 'Hadir'}`,
-              description: `Kelola data kehadiran ${
-                activeTab === 'Absent' ? 'yang belum tercatat' : 'yang sudah hadir'
+              title: `Kehadiran - ${
+                activeTab === "Absent" ? "Belum Hadir" : "Hadir"
               }`,
-              filters: []
+              description: `Kelola data kehadiran ${
+                activeTab === "Absent"
+                  ? "yang belum tercatat"
+                  : "yang sudah hadir"
+              }`,
+              filters: [],
             }}
             paginationOptions={{
               pageIndex: 0,

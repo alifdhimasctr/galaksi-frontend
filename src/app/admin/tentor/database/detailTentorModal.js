@@ -119,37 +119,6 @@ export default function DetailTentorModal({ open, onClose, tentorId }) {
           </div>
         </DetailItem>
 
-        {/* Jadwal */}
-        {tentor?.schedule && Array.isArray(tentor.schedule) && (
-          <div>
-            <h3 className="font-medium text-blue-700 mb-2 flex items-center gap-2">
-              <FaCalendar /> Jadwal Mengajar
-            </h3>
-            <div className="flex flex-col gap-2">
-              {tentor.schedule.map((sch, idx) => (
-                <div key={idx}>
-                  <div className="font-semibold mb-1">{sch.day}</div>
-                  <div className="flex flex-wrap gap-2">
-                    {sch.slots.map((slot, sidx) => (
-                      <span
-                        key={sidx}
-                        className={`px-2 py-1 rounded-full text-xs 
-                  ${
-                    slot.booked
-                      ? "bg-gray-200 text-gray-600"
-                      : "bg-blue-100 text-blue-700"
-                  }
-                `}
-                      >
-                        {slot.time}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Informasi Bank */}
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">

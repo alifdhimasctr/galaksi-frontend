@@ -67,7 +67,14 @@ export default function InvoicePage() {
       { accessorKey: "siswa.level", header: "Jenjang" },
       { accessorKey: "mitra.name", header: "Mitra" },
       { accessorKey: "paket.name", header: "Paket" },
-      { accessorKey: "price", header: "Total Harga" },
+      { 
+      accessorKey: "price", 
+      header: "Total Harga",
+      cell: ({ row }) => 
+        row.original.price != null
+        ? row.original.price.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })
+        : "-"
+      },
     ];
 
     if(activeTab === 'paid') {
@@ -77,17 +84,31 @@ export default function InvoicePage() {
           accessorKey: "transferProof",
           header: "Bukti Transfer",
           cell: ({ row }) => {
-            const transferProofUrl = row.original.transferProof
-              ? `${API}/${row.original.transferProof}`
-              : null;
-            return transferProofUrl ? (
-              <img 
-                src={transferProofUrl} 
-                alt="Bukti Transfer" 
-                className="max-w-[100px] max-h-[100px] cursor-pointer hover:opacity-75"
-                onClick={() => window.open(transferProofUrl, '_blank')}
-              />
-            ) : <span className="text-gray-400">-</span>;
+        const transferProofUrl = row.original.transferProof
+          ? `${API}/${row.original.transferProof}`
+          : null;
+        return transferProofUrl ? (
+          <img 
+            src={transferProofUrl} 
+            alt="Bukti Transfer" 
+            className="max-w-[100px] max-h-[100px] cursor-pointer hover:opacity-75"
+            onClick={() => window.open(transferProofUrl, '_blank')}
+          />
+        ) : <span className="text-gray-400">-</span>;
+          }
+        },
+        {
+          accessorKey: "updatedAt",
+          header: "Tanggal Transfer",
+          cell: ({ row }) => {
+        const date = row.original.updatedAt
+          ? (() => {
+          const d = new Date(row.original.updatedAt);
+          const pad = n => n.toString().padStart(2, '0');
+          return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear().toString().slice(-2)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+            })()
+          : "-";
+        return <span>{date}</span>;
           }
         }
       ];

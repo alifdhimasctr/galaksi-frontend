@@ -63,7 +63,7 @@ export default function AddPaketModal({ open, onClose, onSuccess }) {
       setLoading(true);
       const token = Cookies.get("token");
 
-      await axios.post(`${API}/pakets`, form, {
+      await axios.post(`${API}/paket`, form, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

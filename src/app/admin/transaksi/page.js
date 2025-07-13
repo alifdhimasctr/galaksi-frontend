@@ -315,120 +315,96 @@ const TransactionsPage = () => {
           </div>
         );
       case "expenses":
-        return (
-          <div>
-            <div className="flex mb-4">
-              <button
-                className={`px-4 py-2 rounded-l-lg ${
-                  expenseTab === "honor"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-                onClick={() => setExpenseTab("honor")}
-              >
-                Honor
-              </button>
-              <button
-                className={`px-4 py-2 rounded-r-lg ${
-                  expenseTab === "proshare"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-                onClick={() => setExpenseTab("proshare")}
-              >
-                Proshare
-              </button>
-            </div>
+        const allExpenses = [
+          ...(expensesData.honor?.map((expense) => ({
+            ...expense,
+            type: "Honor",
+            name: expense.tentor?.name || "-",
+          })) || []),
+          ...(expensesData.proshare?.map((expense) => ({
+            ...expense,
+            type: "Proshare",
+            name: expense.mitra?.name || "-",
+          })) || []),
+        ].sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate)); // urutkan terbaru dulu
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tanggal
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {expenseTab === "honor" ? "Tentor" : "Mitra"}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Jumlah
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {expenseTab === "honor" ? (
-                    expensesData.honor?.length > 0 ? (
-                      expensesData.honor.map((expense) => (
-                        <tr key={expense.id}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {expense.paymentDate 
-                              ? new Date(expense.paymentDate).toLocaleDateString()
-                              : "-"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {expense.tentor?.name || "-"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right">
-                            {formatCurrency(expense.total)}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="3" className="px-6 py-4 text-center text-gray-500">
-                          Tidak ada data honor
-                        </td>
-                      </tr>
-                    )
-                  ) : expensesData.proshare?.length > 0 ? (
-                    expensesData.proshare.map((expense) => (
-                      <tr key={expense.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {expense.paymentDate 
-                            ? new Date(expense.paymentDate).toLocaleDateString()
-                            : "-"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {expense.mitra?.name || "-"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          {formatCurrency(expense.total)}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="3" className="px-6 py-4 text-center text-gray-500">
-                        Tidak ada data proshare
-                      </td>
-                    </tr>
-                  )}
-                  <tr className="bg-gray-50 font-bold">
-                    <td colSpan="2" className="px-6 py-4 text-right">
-                      Total {expenseTab === "honor" ? "Honor" : "Proshare"}:
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {formatCurrency(
-                        expenseTab === "honor"
-                          ? expensesData.totalHonor || 0
-                          : expensesData.totalProshare || 0
-                      )}
-                    </td>
-                  </tr>
-                  <tr className="bg-gray-100 font-bold">
-                    <td colSpan="2" className="px-6 py-4 text-right">
-                      Total Pengeluaran:
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {formatCurrency(
-                        (expensesData.totalHonor || 0) + 
-                        (expensesData.totalProshare || 0)
-                      )}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+        const displayedExpenses = allExpenses.slice(0, 10);
+
+        return (
+          <div className="overflow-x-auto max-h-96">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Tanggal
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Jenis
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Nama
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Jumlah
+            </th>
+          </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+          {displayedExpenses.length > 0 ? (
+            displayedExpenses.map((expense) => (
+              <tr key={expense.id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+            {expense.paymentDate
+              ? new Date(expense.paymentDate).toLocaleDateString()
+              : "-"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+            {expense.type}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+            {expense.name}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right">
+            {formatCurrency(expense.total)}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
+                Tidak ada data pengeluaran
+              </td>
+            </tr>
+          )}
+          <tr className="bg-gray-50 font-bold">
+            <td colSpan="3" className="px-6 py-4 text-right">
+              Total Honor:
+            </td>
+            <td className="px-6 py-4 text-right">
+              {formatCurrency(expensesData.totalHonor || 0)}
+            </td>
+          </tr>
+          <tr className="bg-gray-50 font-bold">
+            <td colSpan="3" className="px-6 py-4 text-right">
+              Total Proshare:
+            </td>
+            <td className="px-6 py-4 text-right">
+              {formatCurrency(expensesData.totalProshare || 0)}
+            </td>
+          </tr>
+          <tr className="bg-gray-100 font-bold">
+            <td colSpan="3" className="px-6 py-4 text-right">
+              Total Pengeluaran:
+            </td>
+            <td className="px-6 py-4 text-right">
+              {formatCurrency(
+                (expensesData.totalHonor || 0) +
+                (expensesData.totalProshare || 0)
+              )}
+            </td>
+          </tr>
+              </tbody>
+            </table>
           </div>
         );
       case "summary":

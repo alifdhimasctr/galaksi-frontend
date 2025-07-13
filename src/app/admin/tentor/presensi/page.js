@@ -99,9 +99,18 @@ export default function AttendancePage() {
       ];
     }
 
-    
-        
-
+    if (activeTab === 'Present') {
+      return [
+        ...baseColumns,
+        {
+          header: "Waktu Hadir",
+          cell: ({ row }) => {
+            const { presentAt } = row.original;
+            return <span>{presentAt ? presentAt : "-"}</span>;
+          }
+        }
+      ];
+    }
 
     if (activeTab === 'RescheduleRequest') {
       return [

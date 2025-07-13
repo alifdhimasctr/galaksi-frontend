@@ -249,7 +249,7 @@ export default function DataTable({
               ) : (
                 <tr>
                   <td colSpan={columns.length} className="p-4 text-center">
-                    No data available
+                    Data tidak ditemukan
                   </td>
                 </tr>
               )}

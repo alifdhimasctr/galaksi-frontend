@@ -44,7 +44,29 @@ export default function SiswaPage() {
   const columns = useMemo(() => [
     { accessorKey: "id", header: "ID" },
     { accessorKey: "name", header: "NAMA SISWA" },
-    { accessorKey: "level", header: "KELAS" },
+    {
+      accessorKey: "level",
+      header: "KELAS",
+      cell: ({ getValue }) => {
+        const level = getValue();
+        let colorClass = "bg-gray-200 text-gray-700";
+        let label = level;
+        if (level === "TK") {
+          colorClass = "bg-blue-100 text-blue-700";
+        } else if (level === "SD") {
+          colorClass = "bg-green-100 text-green-700";
+        } else if (level === "SMP") {
+          colorClass = "bg-yellow-100 text-yellow-700";
+        } else if (level === "SMA") {
+          colorClass = "bg-red-100 text-red-700";
+        }
+        return (
+          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colorClass}`}>
+            {label}
+          </span>
+        );
+      },
+    },
     { accessorKey: "parentName", header: "NAMA ORANG TUA" },
     {
       accessorKey: "mitraName",

@@ -30,7 +30,8 @@ export default function HonorPage() {
           ...honor,
           siswa: honor.siswa ? { 
             id: honor.siswa.id, 
-            name: honor.siswa.name 
+            name: honor.siswa.name ,
+            level: honor.siswa.level
           } : null,
           tentor: honor.tentor ? { 
             id: honor.tentor.id, 
@@ -59,20 +60,41 @@ export default function HonorPage() {
   }, [allHonors]);
 
   const columns = useMemo(() => {
+    const levelBadgeColor = level => {
+      switch (level) {
+      case "TK": return "bg-blue-200 text-blue-800";
+      case "SD": return "bg-green-200 text-green-800";
+      case "SMP": return "bg-yellow-200 text-yellow-800";
+      case "SMA": return "bg-red-200 text-red-800";
+      default: return "bg-gray-200 text-gray-800";
+      }
+    };
+
     const baseColumns = [
       { accessorKey: "tentor.name", header: "Nama Tentor" },
       { accessorKey: "siswa.name", header: "Nama Siswa" },
       { 
-        accessorKey: "total", 
-        header: "Total Honor",
-        cell: ({ row }) => (
-          <span>
-            Rp {parseInt(row.original.total).toLocaleString('id-ID')}
-          </span>
-        )
+      accessorKey: "siswa.level", 
+      header: "Jenjang Siswa",
+      cell: ({ row }) => {
+        const level = row.original.siswa?.level || "";
+        return (
+        <span className={`px-2 py-1 rounded-full text-xs ${levelBadgeColor(level)}`}>
+          {level}
+        </span>
+        );
+      }
       },
-      {accessorKey: "tentor.bankName", header: "Nama Bank"},
-      {accessorKey: "tentor.bankNumber", header: "Nomor Rekening"}
+      { 
+      accessorKey: "total", 
+      header: "Total Honor",
+      cell: ({ row }) => (
+        <span>
+        Rp {parseInt(row.original.total).toLocaleString('id-ID')}
+        </span>
+      )
+      },
+
     ];
 
     if(activeTab === 'paid') {
@@ -155,7 +177,8 @@ export default function HonorPage() {
                 ...honor,
                 siswa: honor.siswa ? { 
                   id: honor.siswa.id, 
-                  name: honor.siswa.name 
+                  name: honor.siswa.name,
+                  level: honor.siswa.level
                 } : null,
                 tentor: honor.tentor ? { 
                   id: honor.tentor.id, 

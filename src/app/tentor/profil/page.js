@@ -240,6 +240,38 @@ const ProfileTentor = () => {
                 </a>
               </div>
             )}
+            {/* Informasi CV */}
+            {tentor.cvUrl && (
+              <div className="bg-gray-50 p-5 rounded-lg">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">
+                  Curriculum Vitae (CV)
+                </h2>
+                <a
+                  href={tentor.cvUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  Lihat Dokumen CV
+                </a>
+              </div>
+            )}
+            {/* Informasi KTP */}
+            {tentor.ktpUrl && (
+              <div className="bg-gray-50 p-5 rounded-lg">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">
+                  Kartu Tanda Penduduk (KTP)
+                </h2>
+                <a
+                  href={tentor.ktpUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  Lihat Dokumen KTP
+                </a>
+              </div>
+            )}
           </div>
         </div>
 
@@ -251,21 +283,7 @@ const ProfileTentor = () => {
           <p className="text-gray-700">{tentor.address}</p>
         </div>
 
-        {/* Informasi Mitra */}
-        <div className="mt-6 bg-blue-50 border border-blue-100 p-5 rounded-lg">
-          <h2 className="text-lg font-semibold text-blue-800 mb-3">Mitra</h2>
-          <div className="flex items-center">
-            <div className="bg-blue-200 rounded-lg w-12 h-12 flex items-center justify-center mr-4">
-              <span className="text-blue-800 font-bold">M</span>
-            </div>
-            <div>
-              <p className="font-medium">{tentor.mitra.name}</p>
-              <p className="text-sm text-blue-600">
-                ID Mitra: {tentor.mitra.id}
-              </p>
-            </div>
-          </div>
-        </div>
+        
       </div>
 
       {/* Footer */}

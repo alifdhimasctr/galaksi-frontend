@@ -211,12 +211,7 @@ const ProfileSiswa = () => {
                       </p>
                     </div>
 
-                    <div>
-                      <h3 className="text-sm text-gray-500">Saldo Wallet</h3>
-                      <p className="font-medium text-blue-600">
-                        {formatCurrency(siswa.wallet)}
-                      </p>
-                    </div>
+                    
 
                     <div>
                       <h3 className="text-sm text-gray-500">

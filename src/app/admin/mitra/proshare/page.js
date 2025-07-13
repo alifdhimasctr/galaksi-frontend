@@ -30,7 +30,8 @@ export default function ProsharePage() {
           ...proshare,
           siswa: proshare.siswa ? { 
             id: proshare.siswa.id, 
-            name: proshare.siswa.name 
+            name: proshare.siswa.name,
+            level: proshare.siswa.level
           } : null,
           mitra: proshare.mitra ? { 
             id: proshare.mitra.id, 
@@ -62,17 +63,33 @@ export default function ProsharePage() {
 
   const columns = useMemo(() => {
     const baseColumns = [
-      { accessorKey: "id", header: "ID Proshare" },
       { accessorKey: "mitra.name", header: "Nama Mitra" },
       { accessorKey: "siswa.name", header: "Nama Siswa" },
       { 
-        accessorKey: "total", 
-        header: "Total Proshare",
-        cell: ({ row }) => (
-          <span>
-            Rp {parseInt(row.original.total).toLocaleString('id-ID')}
-          </span>
-        )
+      accessorKey: "siswa.level", 
+      header: "Jenjang Siswa",
+      cell: ({ row }) => {
+        const level = row.original.siswa?.level || "";
+        let badgeColor = "bg-gray-200 text-gray-800";
+        if (level.toLowerCase() === "tk") badgeColor = "bg-blue-100 text-blue-700";
+        else if (level.toLowerCase() === "sd") badgeColor = "bg-green-100 text-green-700";
+        else if (level.toLowerCase() === "smp") badgeColor = "bg-yellow-100 text-yellow-700";
+        else if (level.toLowerCase() === "sma") badgeColor = "bg-red-100 text-red-700";
+        return (
+        <span className={`px-2 py-1 rounded-full text-xs  ${badgeColor}`}>
+          {level}
+        </span>
+        );
+      }
+      },
+      { 
+      accessorKey: "total", 
+      header: "Total Proshare",
+      cell: ({ row }) => (
+        <span>
+        Rp {parseInt(row.original.total).toLocaleString('id-ID')}
+        </span>
+      )
       },
     ];
 
@@ -156,7 +173,8 @@ export default function ProsharePage() {
                 ...proshare,
                 siswa: proshare.siswa ? { 
                   id: proshare.siswa.id, 
-                  name: proshare.siswa.name 
+                  name: proshare.siswa.name,
+                  level: proshare.siswa.level
                 } : null,
                 mitra: proshare.mitra ? { 
                   id: proshare.mitra.id, 

@@ -4,9 +4,11 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import DataTable from "@/app/component/DataTable";
 import DashboardLayout from "@/app/component/dashboardLayout";
-import { FaCheckCircle, FaTimesCircle, FaCalendarAlt } from "react-icons/fa";
+import { FaCheckCircle, FaTimesCircle, FaCalendarAlt, FaClipboard, FaCopy } from "react-icons/fa";
 import RescheduleModal from "./rescheduleModal";
 import PresentModal from "./presensiModal";
+import { FiCopy } from "react-icons/fi";
+import toast from "react-hot-toast";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 const user = JSON.parse(Cookies.get("user") || "{}");
@@ -85,28 +87,86 @@ export default function PresensiTentorPage() {
       },
     ];
 
-    if (activeTab === "Absent") {
+    if (activeTab === "PresentRequest") {
       return [
         ...baseColumns,
         {
           accessorKey: "action",
           header: "Aksi",
-          cell: ({ row }) => (
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setSelectedJadwal(row.original.id);
-                  console.log("Selected Jadwal ID:", row.original.id);
-                  setOpenRescheduleModal(true);
-                }}
-                className="p-2 text-red-600 hover:bg-green-100 rounded-lg"
-                title="Catat Kehadiran"
-              >
-                <FaCalendarAlt size={20} />
-              </button>
-            </div>
-          ),
+          cell: ({ row }) => {
+            const noHp = row.original.noHp;
+            const confirmLink = `${window.location.origin}/siswa/jadwal/${row.original.id}`;
+            return (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(confirmLink);
+                    toast.success("Link Konfirmasi Berhasil disalin")
+                  }}
+                  className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg"
+                  title="Salin Link Konfirmasi"
+                >
+                  <FiCopy/>
+                </button>
+                
+              </div>
+            );
+          },
         },
+      ];
+    }
+
+    if (activeTab === "Absent") {
+      return [
+      ...baseColumns,
+      {
+        accessorKey: "action",
+        header: "Aksi",
+        cell: ({ row }) => (
+        <div className="flex gap-2">
+          <button
+          onClick={() => {
+            setSelectedJadwal(row.original.id);
+            console.log("Selected Jadwal ID:", row.original.id);
+            setOpenRescheduleModal(true);
+          }}
+          className="p-2 text-red-600 hover:bg-green-100 rounded-lg"
+          title="Ajukan Reschedule"
+          >
+          <FaCalendarAlt size={20} />
+          </button>
+          <button
+          onClick={() => {
+            setSelectedJadwal(row.original.id);
+            setOpenPresentModal(true);
+          }}
+          className="p-2 text-green-600 hover:bg-green-100 rounded-lg"
+          title="Catat Kehadiran"
+          >
+          <FaCheckCircle size={20} />
+          </button>
+        </div>
+        ),
+      },
+      ];
+    }
+
+    // Jika tab aktif "Present", tambahkan kolom waktu presensi
+    if (activeTab === "Present") {
+      return [
+      ...baseColumns,
+      {
+        accessorKey: "presensiTime",
+        header: "Waktu Presensi",
+        cell: ({ row }) => {
+        const presensiTime = row.original.presentAt;
+        return (
+          <span className="text-green-700 font-medium">
+          {presensiTime ? presensiTime : "-"}
+          </span>
+        );
+        },
+      },
       ];
     }
 
@@ -134,8 +194,8 @@ export default function PresensiTentorPage() {
               : tab === "Present"
               ? "Hadir"
               : tab === "PresentRequest"
-              ? "Request Present"
-              : "Request Reschedule"}
+              ? "Menunggu Konfirmasi Hadir"
+              : "Request Ganti Tentor"}
             <span className="ml-2 bg-gray-100 px-2 py-1 rounded-full text-xs">
               {attendances.filter((a) => a.attendanceStatus === tab).length}
             </span>
@@ -145,98 +205,108 @@ export default function PresensiTentorPage() {
           </div>
 
           {/* Jadwal Hari Ini - Hanya tampil di tab Absent */}
-        {activeTab === "Absent" && (
-          <div className="bg-white p-4 rounded-lg shadow-md border border-blue-100">
-            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-              <FaCalendarAlt className="text-blue-500" />
-              Jadwal Hari Ini
-            </h3>
-            <div className="space-y-3">
-              {attendances
-                .filter((a) => {
-                  // With something like this to ensure GMT+7:
+          {activeTab === "Absent" && (
+            <div className="bg-white p-4 rounded-lg shadow-md border border-blue-100">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <FaCalendarAlt className="text-blue-500" />
+                Jadwal Hari Ini
+              </h3>
+              <div className="space-y-3">
+                {(() => {
                   const offset = 7;
                   const localDate = new Date(
                     new Date().getTime() + offset * 60 * 60 * 1000
                   );
                   const today = localDate.toISOString().split("T")[0];
-                  return a.date === today && a.attendanceStatus === "Absent";
-                })
-                .map((jadwal) => (
-                  <div
-                    key={jadwal.id}
-                    className="p-3 border rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{jadwal.siswaName}</p>
-                        <p className="text-sm text-gray-500">
-                          {jadwal.dayName}, {jadwal.date} | {jadwal.time}
-                        </p>
+                  const jadwalHariIni = attendances.filter(
+                    (a) => a.date === today && a.attendanceStatus === "Absent"
+                  );
+                  if (jadwalHariIni.length === 0) {
+                    return (
+                      <div className="text-gray-500 text-center py-4">
+                        Tidak ada jadwal hari ini
                       </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            setSelectedJadwal(jadwal.id);
-                            console.log("Selected Jadwal ID:", jadwal.id);
-                            setOpenPresentModal(true);
-                          }}
-                          className="p-2 text-green-600 hover:bg-green-100 rounded-lg"
-                          title="Catat Kehadiran"
-                        >
-                          <FaCheckCircle size={20} />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedJadwal(jadwal.id);
-                            setOpenRescheduleModal(true);
-                          }}
-                          className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg"
-                          title="Ajukan Reschedule"
-                        >
-                          <FaCalendarAlt size={20} />
-                        </button>
+                    );
+                  }
+                  return jadwalHariIni.map((jadwal) => (
+                    <div
+                      key={jadwal.id}
+                      className="p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{jadwal.siswaName}</p>
+                          <p className="text-sm text-gray-500">
+                            {jadwal.dayName}, {jadwal.date} | {jadwal.time}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedJadwal(jadwal.id);
+                              console.log("Selected Jadwal ID:", jadwal.id);
+                              setOpenPresentModal(true);
+                            }}
+                            className="p-2 text-green-600 hover:bg-green-100 rounded-lg"
+                            title="Catat Kehadiran"
+                          >
+                            <FaCheckCircle size={20} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedJadwal(jadwal.id);
+                              setOpenRescheduleModal(true);
+                            }}
+                            className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg"
+                            title="Ajukan Reschedule"
+                          >
+                            <FaCalendarAlt size={20} />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ));
+                })()}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+          {/*  Data Table */}
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">Memuat data...</div>
+          ) : (
+            <DataTable
+              data={filteredAttendances}
+              columns={columns}
+              onSearch={true}
+              filterOptions={{
+                title: `Kehadiran - ${
+            activeTab === "Absent"
+              ? "Belum hadir"
+              : activeTab === "Present"
+              ? "Hadiir"
+              : activeTab === "RescheduleRequest"
+              ? "Request Ganti Tentor"
+              : "Menunggu konfirmasi hadir"
+                }`,
+                description: `Kelola data kehadiran ${
+            activeTab === "Absent"
+              ? "yang belum tercatat"
+              : activeTab === "Present"
+              ? "yang sudah hadir"
+              : activeTab === "RescheduleRequest"
+              ? "permintaan ganti tentor"
+              : "menunggu konfirmasi hadir"
+                }`,
+                filters: [],
+              }}
+              paginationOptions={{
+                pageIndex: 0,
+                pageSize: 10,
+              }}
+            />
+          )}
 
-        {/* Data Table */}
-        {loading ? (
-          <div className="text-center py-8 text-gray-500">Memuat data...</div>
-        ) : (
-          <DataTable
-            data={filteredAttendances}
-            columns={columns}
-            onSearch={true}
-            filterOptions={{
-              title: `Kehadiran - ${
-                activeTab === "Absent"
-                  ? "Belum Hadir"
-                  : activeTab === "Present"
-                  ? "Hadir"
-                  : "Request Reschedule"
-              }`,
-              description: `Kelola data kehadiran ${
-                activeTab === "Absent"
-                  ? "yang belum tercatat"
-                  : activeTab === "Present"
-                  ? "yang sudah hadir"
-                  : "permintaan reschedule"
-              }`,
-              filters: [],
-            }}
-            paginationOptions={{
-              pageIndex: 0,
-              pageSize: 10,
-            }}
-          />
-        )}
-
-        {/* Modals */}
+          {/* Modals */}
         <PresentModal
           open={openPresentModal}
           onClose={() => setOpenPresentModal(false)}
@@ -254,6 +324,7 @@ export default function PresensiTentorPage() {
             };
             fetchData();
           }}
+        
         />
 
         <RescheduleModal

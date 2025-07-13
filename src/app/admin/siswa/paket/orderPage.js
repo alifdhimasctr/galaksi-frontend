@@ -231,7 +231,7 @@ export default function AdminOrderPage({ open, onClose, onSuccess }) {
       title="Buat Order Baru (Admin)"
       onClose={onClose}
       closeOnOverlayClick={false}
-      className="w-full max-w-3xl"
+      className="w-full max-w-4xl"
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-sm">
         {/* Siswa Selection */}
@@ -241,9 +241,7 @@ export default function AdminOrderPage({ open, onClose, onSuccess }) {
               value: siswa.id,
               label: (
                 <div className="flex items-center gap-3">
-                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 flex items-center justify-center">
-                    <FaUserGraduate className="text-gray-600" />
-                  </div>
+                  
                   <div className="flex flex-col">
                     <span className="font-semibold">{siswa.name}</span>
                     <span className="text-xs text-gray-500">
@@ -327,8 +325,16 @@ export default function AdminOrderPage({ open, onClose, onSuccess }) {
                 value: tentor.id,
                 label: (
                   <div className="flex items-center gap-3">
-                    <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 flex items-center justify-center">
-                      <FaUserGraduate className="text-gray-600" />
+                    <div className="w-10 h-10 flex items-center justify-center rounded-xl overflow-hidden bg-gray-200 ">
+                      {tentor.fotoUrl ? (
+                        <img
+                          src={tentor.fotoUrl}
+                          alt={tentor.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <FaUserGraduate className="text-gray-600" />
+                      )}
                     </div>
                     <div className="flex flex-col">
                       <span className="font-semibold">{tentor.name}</span>
@@ -350,8 +356,6 @@ export default function AdminOrderPage({ open, onClose, onSuccess }) {
               isDisabled={!form.siswaId}
             />
           </Label>
-
-          {/* Time */}
           <Label text="Waktu Mulai Les">
             <div className="relative flex gap-2">
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-800">

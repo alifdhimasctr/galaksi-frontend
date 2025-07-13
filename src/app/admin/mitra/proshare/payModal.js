@@ -12,6 +12,34 @@ export default function PayModal({ open, onClose, onSuccess, proshareId }) {
     const [msg, setMsg] = useState("")
     const [preview, setPreview] = useState(null);
     const [form, setForm] = useState({ transferProof: "" })
+    const [proshare, setProshare] = useState(null);
+
+    useEffect(() => {
+        if (open && proshareId) {
+            const fetchProshare = async () => {
+                try {
+                    const token = Cookies.get("token");
+                    const { data } = await axios.get(`${API}/proshare/id/${proshareId}`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+                    setProshare(data);
+                    setForm({ transferProof: "" });
+                    setPreview(null);
+                } catch (error) {
+                    setMsg(error.response?.data?.message || "Terjadi kesalahan saat mengambil data proshare");
+                    toast.error("Gagal mengambil data proshare!");
+                }
+            };
+            fetchProshare();
+        } else {
+            setProshare(null);
+            setForm({ transferProof: "" });
+            setPreview(null);
+        }
+    }, [open, proshareId]);
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -65,6 +93,17 @@ export default function PayModal({ open, onClose, onSuccess, proshareId }) {
             title="Konfirmasi Pembayaran Proshare"
             onClose={onClose}
         >
+            {/* tampilkan nama bank dan nomor rekening mitra */}
+             {proshare && (
+                <div className="mb-4">
+                    <p className="text-sm text-gray-700 mb-1">
+                        Silakan transfer ke rekening berikut:
+                    </p>
+                    <p className="text-sm text-gray-700 mb-1">
+                        {proshare.mitra.bankName} - {proshare.mitra.bankNumber}
+                    </p>
+                </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
                 {msg && (
                     <div className="p-3 bg-red-100 text-red-700 rounded-lg flex items-center gap-2">

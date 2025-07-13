@@ -295,44 +295,7 @@ function TentorCard({ tentor }) {
             </div>
           </div>
           
-          <div className="mb-2">
-            <h3 className="font-medium text-gray-700 mb-1 text-sm">Jadwal Mengajar</h3>
-            {(() => {
-          let schedule = [];
-          if (typeof tentor.schedule === "string") {
-            try {
-              schedule = JSON.parse(tentor.schedule);
-            } catch {
-              schedule = [];
-            }
-          } else if (Array.isArray(tentor.schedule)) {
-            schedule = tentor.schedule;
-          }
-          return schedule && schedule.length > 0 ? (
-            <div className="flex flex-col gap-2">
-              {schedule.map((sch, idx) => (
-            <div key={idx}>
-              <div className="font-semibold mb-1">{sch.day}</div>
-              <div className="flex flex-wrap gap-2">
-                {sch.slots.map((slot, sidx) => (
-              <span
-                key={sidx}
-                className={`px-2 py-1 rounded-full text-xs 
-                  ${slot.booked 
-                ? 'bg-gray-200 text-gray-600' 
-                : 'bg-blue-100 text-blue-700'}
-                `}
-              >
-                {slot.time}
-              </span>
-                ))}
-              </div>
-            </div>
-              ))}
-            </div>
-          ) : null;
-            })()}
-          </div>
+          
 
           {tentor.cvUrl && (
             <div className="mb-2">

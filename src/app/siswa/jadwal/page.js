@@ -34,33 +34,45 @@ export default function AttendancePage() {
     return attendances.filter(a => a.attendanceStatus === activeTab);
   }, [attendances, activeTab]);
 
-  const columns = useMemo(() => [
-    { accessorKey: "tentorName", header: "Nama Tentor" },
-    {
-      header: "Hari/Tanggal",
-      cell: ({ row }) => {
-        const { dayName, date } = row.original;
-        return <span>{dayName} - {date}</span>;
+  const columns = useMemo(() => {
+    const baseColumns = [
+      { accessorKey: "tentorName", header: "Nama Tentor" },
+      {
+        header: "Hari/Tanggal",
+        cell: ({ row }) => {
+          const { dayName, date } = row.original;
+          return <span>{dayName} - {date}</span>;
+        }
+      },
+      { accessorKey: "time", header: "Waktu" },
+      {
+        accessorKey: "attendanceStatus",
+        header: "Status",
+        cell: ({ getValue }) => {
+          const status = getValue();
+          const statusStyle = {
+            Absent: "bg-red-100 text-red-700",
+            Present: "bg-green-100 text-green-700"
+          };
+          return (
+            <span className={`px-2 py-1 rounded-full text-xs ${statusStyle[status]}`}>
+              {status === 'Absent' ? 'Belum Hadir' : 'Hadir'}
+            </span>
+          );
+        }
       }
-    },
-    { accessorKey: "time", header: "Waktu" },
-    {
-      accessorKey: "attendanceStatus",
-      header: "Status",
-      cell: ({ getValue }) => {
-        const status = getValue();
-        const statusStyle = {
-          Absent: "bg-red-100 text-red-700",
-          Present: "bg-green-100 text-green-700"
-        };
-        return (
-          <span className={`px-2 py-1 rounded-full text-xs ${statusStyle[status]}`}>
-            {status === 'Absent' ? 'Belum Hadir' : 'Hadir'}
-          </span>
-        );
-      }
+    ];
+    if (activeTab === "Present") {
+      baseColumns.push({
+        header: "Waktu Hadir",
+        cell: ({ row }) => {
+          const { presentAt } = row.original;
+          return <span>{presentAt ? presentAt : "-"}</span>;
+        }
+      });
     }
-  ], [activeTab]);
+    return baseColumns;
+  }, [activeTab]);
 
   return (
     <DashboardLayout>
