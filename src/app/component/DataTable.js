@@ -138,129 +138,145 @@ export default function DataTable({
       <section className="space-y-6 bg-white p-4 rounded-lg">
         {filterOptions && (
           <header>
-            <h1 className="text-2xl font-semibold text-gray-800">
+            <h1 className="text-xl md:text-2xl font-semibold text-gray-800">
               {filterOptions?.title || "Data Table"}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs md:text-sm text-gray-500">
               {filterOptions?.description || "Manage your data here"}
             </p>
           </header>
         )}
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex gap-2">
-            {onAdd && (
-              <button
-                onClick={onAdd}
-                className="flex text-sm items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700"
-              >
-                <FaPlus /> Tambah
-              </button>
-            )}
-            {onSearch && (
-              <div className="relative w-full md:w-64">
-                <input
-                  value={globalFilter}
-                  onChange={(e) => setGlobalFilter(e.target.value)}
-                  placeholder="Cari..."
-                  className="w-full border rounded pl-8 pr-3 py-2 text-sm"
-                />
-                <FaSearch className="absolute left-2 top-3 text-gray-400 text-xs" />
-              </div>
-            )}
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {filterOptions?.filters?.map((filter, index) => (
-              <div key={index} className="flex flex-col items-center gap-2">
-                <label
-                  htmlFor={filter.id}
-                  className="text-gray-600"
-                ></label>
-                <select
-                  id={filter.id}
-                  value={columnFilters[filter.id] || ""}
-                  onChange={(e) =>
-                    setColumnFilters((prev) => ({
-                      ...prev,
-                      [filter.id]: e.target.value,
-                    }))
-                  }
-                  className="border rounded  px-2 py-2 text-sm"
+        {/* Search & Filters - Responsive Layout */}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              {onAdd && (
+                <button
+                  onClick={onAdd}
+                  className="flex text-sm items-center justify-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg shadow hover:bg-blue-700 whitespace-nowrap"
                 >
-                  
-                  {filter.options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ))}
+                  <FaPlus /> Tambah
+                </button>
+              )}
+              {onSearch && (
+                <div className="relative w-full">
+                  <input
+                    value={globalFilter}
+                    onChange={(e) => setGlobalFilter(e.target.value)}
+                    placeholder="Cari..."
+                    className="w-full border rounded pl-8 pr-3 py-2 text-sm"
+                  />
+                  <FaSearch className="absolute left-2 top-3 text-gray-400 text-xs" />
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Filters Grid */}
+          {filterOptions?.filters && filterOptions.filters.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {filterOptions.filters.map((filter, index) => (
+                <div key={index} className="flex flex-col">
+                  <label
+                    htmlFor={filter.id}
+                    className="text-xs text-gray-600 mb-1"
+                  >
+                    {filter.label}
+                  </label>
+                  <select
+                    id={filter.id}
+                    value={columnFilters[filter.id] || ""}
+                    onChange={(e) =>
+                      setColumnFilters((prev) => ({
+                        ...prev,
+                        [filter.id]: e.target.value,
+                      }))
+                    }
+                    className="border rounded px-2 py-2 text-xs md:text-sm"
+                  >
+                    <option value="">Semua</option>
+                    {filter.options.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Table */}
+        {/* Table with Horizontal Scroll */}
         <div className="overflow-x-auto rounded-lg bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-200 text-gray-700">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="px-4 py-3 text-left cursor-pointer select-none whitespace-nowrap"
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
-                      <div className="flex items-center gap-2">
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}{" "}
-                        {sortIcon(header.column)}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={columns.length} className="p-4 text-center">
-                    Loading...
-                  </td>
-                </tr>
-              ) : table.getRowModel().rows.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="hover:bg-gray-50 border-y border-gray-200 py-1"
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-4 py-2 whitespace-nowrap">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
+          <div className="min-w-full inline-block align-middle">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-200 text-gray-700">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        className="px-2 py-3 text-left cursor-pointer select-none whitespace-nowrap md:px-4"
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs md:text-sm">
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                          </span>
+                          {sortIcon(header.column)}
+                        </div>
+                      </th>
                     ))}
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={columns.length} className="p-4 text-center">
-                    Data tidak ditemukan
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                ))}
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={columns.length} className="p-4 text-center">
+                      Loading...
+                    </td>
+                  </tr>
+                ) : table.getRowModel().rows.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="hover:bg-gray-50 border-y border-gray-200"
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className="px-2 py-2 whitespace-nowrap text-xs md:text-sm md:px-4"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={columns.length} className="p-4 text-center">
+                      Data tidak ditemukan
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        {/* Pagination */}
+        {/* Responsive Pagination */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between text-sm gap-3">
-          <div className="flex items-center gap-2">
-            <span>Show</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs md:text-sm">Show</span>
             <select
               value={pagination.pageSize}
               onChange={(e) =>
@@ -269,44 +285,63 @@ export default function DataTable({
                   pageSize: Number(e.target.value),
                 }))
               }
-              className="border rounded px-2 py-1"
+              className="border rounded px-2 py-1 text-xs md:text-sm"
             >
               {[5, 10, 25, 50].map((n) => (
                 <option key={n}>{n}</option>
               ))}
             </select>
-            <span>entries</span>
+            <span className="text-xs md:text-sm">entries</span>
           </div>
-          <div className="flex gap-1 justify-end">
-            <PageBtn
-              label="<"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            />
-            {table.getPageOptions().map((page) => (
-              <button
-                key={page}
-                onClick={() =>
-                  setPagination((p) => ({ ...p, pageIndex: page }))
-                }
-                className={clsx(
-                  "px-3 py-1 rounded",
-                  pagination.pageIndex === page
-                    ? "bg-blue-600 text-white"
-                    : "bg-white border hover:bg-gray-50"
-                )}
-              >
-                {page + 1}
-              </button>
-            ))}
-            <PageBtn
-              label=">"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            />
+          
+          <div className="flex flex-col sm:flex-row gap-3 items-center">
+            <div className="text-xs md:text-sm">
+              Page {pagination.pageIndex + 1} of {table.getPageCount()}
+            </div>
+            
+            <div className="flex gap-1 justify-end flex-wrap">
+              <PageBtn
+                label="<"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              />
+              {table.getPageOptions().map((page) => (
+                <button
+                  key={page}
+                  onClick={() =>
+                    setPagination((p) => ({ ...p, pageIndex: page }))
+                  }
+                  className={clsx(
+                    "px-2 py-1 rounded text-xs md:text-sm",
+                    pagination.pageIndex === page
+                      ? "bg-blue-600 text-white"
+                      : "bg-white border hover:bg-gray-50"
+                  )}
+                >
+                  {page + 1}
+                </button>
+              ))}
+              <PageBtn
+                label=">"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              />
+            </div>
           </div>
         </div>
       </section>
+      
+      {/* Mobile Optimization CSS */}
+      <style jsx>{`
+        @media (max-width: 640px) {
+          table th, table td {
+            padding: 8px 4px;
+          }
+          .mobile-hidden {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }

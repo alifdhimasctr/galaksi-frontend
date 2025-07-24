@@ -5,6 +5,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import toast, { Toaster } from "react-hot-toast";
 import { Mail, Lock } from "lucide-react";
+import Link from "next/link";
 
 /**
  * LoginPage – talks to Express /login endpoint, stores JWT in a cookie and
@@ -180,6 +181,14 @@ export default function LoginPage() {
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
+          <div className="mt-6">
+            <p className="text-sm text-gray-500">
+              Belum punya akun?{" "}
+              <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
+                Daftar sekarang
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
